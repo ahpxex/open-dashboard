@@ -1,8 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { products } from "@/db/schema";
+import { type NewProduct, type Product, products } from "@/db/schema";
 import { drizzleRepository } from "@/infra/data/drizzle-repository";
+import { memoryRepository } from "@/infra/data/memory-repository";
+import type { Repository } from "@/infra/data/repository";
+import { hasDatabase } from "@/lib/backend";
 import { requireUser } from "@/lib/require-user";
+import { demoProducts } from "./demo-data";
 import {
   type ProductListParams,
   productInputSchema,
@@ -11,23 +15,32 @@ import {
 } from "./schema";
 
 /**
- * The products resource is backed by Postgres via the Drizzle adapter. Swapping
- * to a REST/GraphQL backend means changing only this binding — the server fns,
- * queries, table, and forms stay the same.
+ * The products resource is backed by Postgres via the Drizzle adapter when a
+ * database is configured, and by the in-memory adapter otherwise (zero-config
+ * `bun dev`). Swapping to a REST/GraphQL backend means changing only this
+ * binding — the server fns, queries, table, and forms stay the same.
  */
-export const productsRepository = drizzleRepository(products, {
-  searchColumns: [products.name, products.sku, products.category],
-  sortColumns: {
-    name: products.name,
-    category: products.category,
-    price: products.price,
-    stock: products.stock,
-    createdAt: products.createdAt,
-  },
-  filterColumns: { status: products.status },
-  defaultSort: { column: products.createdAt, dir: "desc" },
-  updatedAtKey: "updatedAt",
-});
+export const productsRepository: Repository<Product, NewProduct> = hasDatabase
+  ? drizzleRepository(products, {
+      searchColumns: [products.name, products.sku, products.category],
+      sortColumns: {
+        name: products.name,
+        category: products.category,
+        price: products.price,
+        stock: products.stock,
+        createdAt: products.createdAt,
+      },
+      filterColumns: { status: products.status },
+      defaultSort: { column: products.createdAt, dir: "desc" },
+      updatedAtKey: "updatedAt",
+    })
+  : memoryRepository<Product, NewProduct>(demoProducts, {
+      searchFields: ["name", "sku", "category"],
+      sortFields: ["name", "category", "price", "stock", "createdAt"],
+      filterFields: ["status"],
+      defaultSort: { field: "createdAt", dir: "desc" },
+      updatedAtKey: "updatedAt",
+    });
 
 /** Map the resource's params (flat `status`) to the repository's `filters`. */
 function toListParams(data: ProductListParams) {

@@ -1,8 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { orders } from "@/db/schema";
+import { type NewOrder, type Order, orders } from "@/db/schema";
 import { drizzleRepository } from "@/infra/data/drizzle-repository";
+import { memoryRepository } from "@/infra/data/memory-repository";
+import type { Repository } from "@/infra/data/repository";
+import { hasDatabase } from "@/lib/backend";
 import { requireUser } from "@/lib/require-user";
+import { demoOrders } from "./demo-data";
 import {
   type OrderListParams,
   ordersInputSchema,
@@ -10,17 +14,25 @@ import {
   ordersUpdateSchema,
 } from "./schema";
 
-export const ordersRepository = drizzleRepository(orders, {
-  searchColumns: [orders.name],
-  sortColumns: {
-    name: orders.name,
-    status: orders.status,
-    createdAt: orders.createdAt,
-  },
-  filterColumns: { status: orders.status },
-  defaultSort: { column: orders.createdAt, dir: "desc" },
-  updatedAtKey: "updatedAt",
-});
+export const ordersRepository: Repository<Order, NewOrder> = hasDatabase
+  ? drizzleRepository(orders, {
+      searchColumns: [orders.name],
+      sortColumns: {
+        name: orders.name,
+        status: orders.status,
+        createdAt: orders.createdAt,
+      },
+      filterColumns: { status: orders.status },
+      defaultSort: { column: orders.createdAt, dir: "desc" },
+      updatedAtKey: "updatedAt",
+    })
+  : memoryRepository<Order, NewOrder>(demoOrders, {
+      searchFields: ["name"],
+      sortFields: ["name", "status", "createdAt"],
+      filterFields: ["status"],
+      defaultSort: { field: "createdAt", dir: "desc" },
+      updatedAtKey: "updatedAt",
+    });
 
 function toListParams(data: OrderListParams) {
   return {
