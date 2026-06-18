@@ -27,15 +27,15 @@ skill lives in `.claude/skills/` and this file links to it.
 
 | Block | Status | Notes |
 | --- | --- | --- |
-| `DataTable` | ✅ | `src/infra/table/DataTable.tsx` — generic controlled table |
+| `DataTable` | ✅ | `src/infra/table/DataTable.tsx` — generic controlled table; URL-synced via `useTableSearch`, debounced search |
 | `StatusChip`, `ActionMenu` | ✅ | `src/infra/ui/*` |
 | UI primitives (28) | ✅ | `src/components/ui/*` (shadcn-on-base-ui) |
-| **Form system** (TanStack Form + zod + `<FormField>`) | 🚧 | Phase 1 |
-| **Toast** | 🚧 | Phase 1 — mutation success/error |
-| **`<ConfirmDialog>` / `useConfirm()`** | 🚧 | Phase 1 — replaces `window.confirm` |
-| **Chart components** (`Area/Bar/Pie/StatCard`) | 🚧 | Phase 1 — `components/charts/*` |
+| **Form system** (TanStack Form + zod + `<FormField>`) | ✅ | `src/components/form/*` — `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError` |
+| **Toast** | ✅ | `sonner` via `src/lib/toast.ts`; mutations report success/error |
+| **`<ConfirmDialog>` / `useConfirm()`** | ✅ | `src/components/ui/confirm-dialog.tsx` — promise-based, replaces `window.confirm` |
+| **Chart components** (`Area/Bar/Pie/StatCard`) | ✅ | `src/components/charts/*` — generic over row type, CSS-var themed |
 | **Date / range / combobox / upload** | 🚧 | Phase 1+ as needed |
-| `app.config` (brand/nav/theme) | 🚧 | Phase 1 |
+| `app.config` (brand/nav/theme) | ✅ | `src/config/app.ts` — single rebrand surface |
 
 ### Data access
 
