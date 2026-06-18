@@ -1,4 +1,3 @@
-import { SquaresFourIcon } from "@phosphor-icons/react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Sidebar,
@@ -13,11 +12,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  bottomMenuItems,
-  type MenuItem,
-  mainMenuItems,
-} from "@/lib/sidebar-items";
+import { appConfig } from "@/config/app";
+import type { MenuItem } from "@/lib/sidebar-items";
 
 // Strong, sharp active state that matches the app's primary colour and stays
 // solid on hover (overrides the design-system's subtle accent active style).
@@ -26,6 +22,7 @@ const ACTIVE_CLASSES =
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const Logo = appConfig.logo;
 
   const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon;
@@ -53,16 +50,16 @@ export function AppSidebar() {
       <SidebarHeader className="h-16 justify-center border-b border-sidebar-border">
         <div className="flex items-center gap-2.5">
           <div className="grid size-8 shrink-0 place-items-center bg-primary text-primary-foreground">
-            <SquaresFourIcon size={18} weight="fill" />
+            <Logo size={18} weight="fill" />
           </div>
           <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-            Open Dashboard
+            {appConfig.name}
           </span>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
-        {mainMenuItems.map((group, groupIndex) => (
+        {appConfig.nav.main.map((group, groupIndex) => (
           <SidebarGroup key={group.groupLabel ?? `group-${groupIndex}`}>
             {group.groupLabel && (
               <SidebarGroupLabel>{group.groupLabel}</SidebarGroupLabel>
@@ -74,9 +71,9 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      {bottomMenuItems.length > 0 && (
+      {appConfig.nav.bottom.length > 0 && (
         <SidebarFooter className="border-t border-sidebar-border">
-          <SidebarMenu>{bottomMenuItems.map(renderMenuItem)}</SidebarMenu>
+          <SidebarMenu>{appConfig.nav.bottom.map(renderMenuItem)}</SidebarMenu>
         </SidebarFooter>
       )}
 

@@ -5,6 +5,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Providers } from "@/components/providers";
+import { appConfig } from "@/config/app";
 import appCss from "@/styles/app.css?url";
 
 export interface RouterContext {
@@ -16,7 +17,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Open Dashboard" },
+      { name: "description", content: appConfig.description },
+      { title: appConfig.name },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
