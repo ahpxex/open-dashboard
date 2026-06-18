@@ -3,6 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toastError, toastSuccess } from "@/lib/toast";
 import type { OrderInput, OrderListParams, OrderUpdate } from "./schema";
 import { createOrders, deleteOrders, listOrders, updateOrders } from "./server";
 
@@ -23,8 +24,11 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: OrderInput) => createOrders({ data: input }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ordersKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ordersKeys.all });
+      toastSuccess("Order created");
+    },
+    onError: (err) => toastError(err, "Failed to create order"),
   });
 }
 
@@ -32,8 +36,11 @@ export function useUpdateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: OrderUpdate) => updateOrders({ data: input }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ordersKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ordersKeys.all });
+      toastSuccess("Order updated");
+    },
+    onError: (err) => toastError(err, "Failed to update order"),
   });
 }
 
@@ -41,7 +48,10 @@ export function useDeleteOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteOrders({ data: id }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ordersKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ordersKeys.all });
+      toastSuccess("Order deleted");
+    },
+    onError: (err) => toastError(err, "Failed to delete order"),
   });
 }
