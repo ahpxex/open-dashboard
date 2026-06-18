@@ -21,6 +21,25 @@ export const productInputSchema = z.object({
 
 export type ProductInput = z.infer<typeof productInputSchema>;
 
+/**
+ * Client-side form validator. Mirrors {@link productInputSchema} but keeps
+ * numeric fields as real numbers (no coercion) so its input type matches the
+ * TanStack Form values exactly. The server still parses with the coercing
+ * schema, which defends against string inputs over the wire.
+ */
+export const productFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  sku: z.string().min(1, "SKU is required"),
+  category: z.string().min(1, "Category is required"),
+  price: z.number({ message: "Price is required" }).min(0, "Price must be ≥ 0"),
+  stock: z
+    .number({ message: "Stock is required" })
+    .int("Stock must be a whole number")
+    .min(0, "Stock must be ≥ 0"),
+  status: z.enum(productStatuses),
+  description: z.string(),
+});
+
 export const productUpdateSchema = productInputSchema.extend({
   id: z.string().min(1),
 });

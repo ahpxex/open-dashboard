@@ -1,9 +1,17 @@
 import { PlusIcon } from "@phosphor-icons/react";
+import { useForm } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { SortingState } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMemo, useState } from "react";
+import {
+  FormError,
+  NumberField,
+  SelectField,
+  SubmitButton,
+  TextareaField,
+  TextField,
+} from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
@@ -15,16 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { Product } from "@/db/schema";
 import { createProductsColumns } from "@/features/products/columns";
 import {
@@ -40,9 +38,12 @@ import {
 import {
   type ProductInput,
   type ProductListParams,
+  productFormSchema,
+  productInputSchema,
   productStatuses,
 } from "@/features/products/schema";
 import { DataTable } from "@/infra/table";
+import { errorMessage } from "@/lib/toast";
 
 const DEFAULT_PARAMS: ProductListParams = {
   page: 1,
@@ -179,6 +180,11 @@ const EMPTY_FORM: ProductInput = {
   description: "",
 };
 
+const statusOptions = productStatuses.map((value) => ({
+  value,
+  label: value.replace(/_/g, " "),
+}));
+
 function toForm(product?: Product): ProductInput {
   if (!product) return { ...EMPTY_FORM };
   return {
@@ -203,41 +209,6 @@ function ProductFormDialog({
   product?: Product;
   onOpenChange: (open: boolean) => void;
 }) {
-  const create = useCreateProduct();
-  const update = useUpdateProduct();
-  const [form, setForm] = useState<ProductInput>(() => toForm(product));
-  const [error, setError] = useState<string | null>(null);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on each open
-  useEffect(() => {
-    if (open) {
-      setForm(toForm(product));
-      setError(null);
-    }
-  }, [open, product]);
-
-  const pending = create.isPending || update.isPending;
-
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    try {
-      const payload: ProductInput = {
-        ...form,
-        price: Number(form.price),
-        stock: Number(form.stock),
-      };
-      if (mode === "edit" && product) {
-        await update.mutateAsync({ id: product.id, ...payload });
-      } else {
-        await create.mutateAsync(payload);
-      }
-      onOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -252,116 +223,100 @@ function ProductFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sku">SKU</Label>
-              <Input
-                id="sku"
-                required
-                value={form.sku}
-                onChange={(e) => setForm({ ...form, sku: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                required
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="number"
-                min={0}
-                step="0.01"
-                required
-                value={String(form.price)}
-                onChange={(e) =>
-                  setForm({ ...form, price: e.target.value as never })
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="stock">Stock</Label>
-              <Input
-                id="stock"
-                type="number"
-                min={0}
-                required
-                value={String(form.stock)}
-                onChange={(e) =>
-                  setForm({ ...form, stock: e.target.value as never })
-                }
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={form.status}
-                onValueChange={(value) =>
-                  setForm({ ...form, status: value as ProductInput["status"] })
-                }
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {productStatuses.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={3}
-              value={form.description ?? ""}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>
-              Cancel
-            </DialogClose>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </form>
+        {open ? (
+          <ProductForm
+            key={product?.id ?? "new"}
+            mode={mode}
+            product={product}
+            onDone={() => onOpenChange(false)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ProductForm({
+  mode,
+  product,
+  onDone,
+}: {
+  mode: "create" | "edit";
+  product?: Product;
+  onDone: () => void;
+}) {
+  const create = useCreateProduct();
+  const update = useUpdateProduct();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: toForm(product),
+    validators: { onChange: productFormSchema },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      const payload = productInputSchema.parse(value);
+      try {
+        if (mode === "edit" && product) {
+          await update.mutateAsync({ id: product.id, ...payload });
+        } else {
+          await create.mutateAsync(payload);
+        }
+        onDone();
+      } catch (err) {
+        setServerError(errorMessage(err));
+      }
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <FormError message={serverError} />
+
+      <TextField form={form} name="name" label="Name" required />
+
+      <div className="grid grid-cols-2 gap-3">
+        <TextField form={form} name="sku" label="SKU" required />
+        <TextField form={form} name="category" label="Category" required />
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <NumberField
+          form={form}
+          name="price"
+          label="Price"
+          min={0}
+          step="0.01"
+          required
+        />
+        <NumberField form={form} name="stock" label="Stock" min={0} required />
+        <SelectField
+          form={form}
+          name="status"
+          label="Status"
+          options={statusOptions}
+        />
+      </div>
+
+      <TextareaField
+        form={form}
+        name="description"
+        label="Description"
+        rows={3}
+      />
+
+      <DialogFooter>
+        <DialogClose render={<Button type="button" variant="outline" />}>
+          Cancel
+        </DialogClose>
+        <SubmitButton form={form}>Save</SubmitButton>
+      </DialogFooter>
+    </form>
   );
 }
