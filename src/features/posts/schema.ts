@@ -38,7 +38,11 @@ export const postListParamsSchema = z.object({
   search: z.string().optional().default(""),
   sortBy: z.string().optional(),
   sortDir: z.enum(["asc", "desc"]).optional(),
-  /** Filter by author id (1–10), surfaced as a select. */
-  userId: z.string().optional().default(""),
+  /**
+   * Filter by author id (1–10), surfaced as a select. `coerce` is required
+   * because the router JSON-parses numeric-looking search params (`userId=5`
+   * arrives as the number 5, not "5").
+   */
+  userId: z.coerce.string().optional().default(""),
 });
 export type PostListParams = z.infer<typeof postListParamsSchema>;
