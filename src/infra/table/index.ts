@@ -1,5 +1,4 @@
-export { PaginationTable } from "./PaginationTable";
-export { TablePage } from "./TablePage";
+export { DataTable, type DataTableProps } from "./DataTable";
 export {
   TablePaginationControls,
   type TablePaginationControlsProps,

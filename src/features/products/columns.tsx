@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Product } from "@/db/schema";
 import { ActionMenu, type ChipColor, StatusChip } from "@/infra/ui";
-import type { Product, ProductStatus } from "./types";
+import type { ProductStatus } from "./schema";
 
 const statusColorMap: Record<ProductStatus, ChipColor> = {
   available: "success",
@@ -16,7 +17,7 @@ const statusLabelMap: Record<ProductStatus, string> = {
 
 export interface ProductsTableContext {
   onEdit: (product: Product) => void;
-  onDelete: (id: string) => void;
+  onDelete: (product: Product) => void;
 }
 
 export function createProductsColumns(
@@ -33,8 +34,9 @@ export function createProductsColumns(
     {
       accessorKey: "sku",
       header: "SKU",
+      enableSorting: false,
       cell: (info) => (
-        <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+        <span className="font-mono text-xs text-muted-foreground">
           {info.getValue() as string}
         </span>
       ),
@@ -43,7 +45,7 @@ export function createProductsColumns(
       accessorKey: "category",
       header: "Category",
       cell: (info) => (
-        <span className="text-gray-600 dark:text-gray-400">
+        <span className="text-muted-foreground">
           {info.getValue() as string}
         </span>
       ),
@@ -52,7 +54,7 @@ export function createProductsColumns(
       accessorKey: "price",
       header: "Price",
       cell: (info) => (
-        <span className="text-gray-600 dark:text-gray-400">
+        <span className="tabular-nums">
           ${(info.getValue() as number).toFixed(2)}
         </span>
       ),
@@ -61,14 +63,13 @@ export function createProductsColumns(
       accessorKey: "stock",
       header: "Stock",
       cell: (info) => (
-        <span className="text-gray-600 dark:text-gray-400">
-          {info.getValue() as number}
-        </span>
+        <span className="tabular-nums">{info.getValue() as number}</span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
+      enableSorting: false,
       cell: (info) => (
         <StatusChip
           status={info.getValue() as ProductStatus}
@@ -79,14 +80,17 @@ export function createProductsColumns(
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "",
+      enableSorting: false,
       cell: (info) => {
         const product = info.row.original;
         return (
-          <ActionMenu
-            onEdit={() => context.onEdit(product)}
-            onDelete={() => context.onDelete(product.id)}
-          />
+          <div className="flex justify-end">
+            <ActionMenu
+              onEdit={() => context.onEdit(product)}
+              onDelete={() => context.onDelete(product)}
+            />
+          </div>
         );
       },
     },
