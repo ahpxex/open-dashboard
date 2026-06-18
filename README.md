@@ -121,8 +121,14 @@ openssl rand -base64 32   # set as BETTER_AUTH_SECRET
 
 ```bash
 bun run db:migrate   # apply migrations in ./drizzle
-bun run db:seed      # insert ~60 demo products
+bun run db:seed      # ~60 demo products + a local dev login account
 ```
+
+Seeding creates a ready-to-use dev account:
+
+| Email | Password |
+| --- | --- |
+| `dev@example.com` | `password` |
 
 ### 5. Start the dev server
 
@@ -130,7 +136,7 @@ bun run db:seed      # insert ~60 demo products
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Create an account on `/register`, then explore the dashboard and the Products page.
+Open [http://localhost:3000](http://localhost:3000). In development the login page shows a **"Dev quick login"** button that signs you in with the seeded account (the button is gated behind `import.meta.env.DEV`, so it is stripped from production builds). Or create your own account on `/register`.
 
 ## Scripts
 
@@ -149,7 +155,7 @@ Open [http://localhost:3000](http://localhost:3000). Create an account on `/regi
 | `bun run db:migrate` | Apply pending migrations. |
 | `bun run db:push` | Push the schema directly to the database (no migration files). |
 | `bun run db:studio` | Open Drizzle Studio. |
-| `bun run db:seed` | Seed the database with demo products. |
+| `bun run db:seed` | Seed demo products + a local dev login account (`dev@example.com` / `password`). |
 | `bun run create-resource <name>` | Scaffold a new resource (feature folder + route + sidebar entry). |
 
 ## Project Structure

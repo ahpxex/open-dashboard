@@ -25,17 +25,21 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function signIn(credentials: { email: string; password: string }) {
     setLoading(true);
     setError(null);
-    const { error } = await authClient.signIn.email({ email, password });
+    const { error } = await authClient.signIn.email(credentials);
     setLoading(false);
     if (error) {
       setError(error.message ?? "Unable to sign in.");
       return;
     }
     navigate({ to: "/" });
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await signIn({ email, password });
   }
 
   return (
@@ -82,6 +86,19 @@ function LoginPage() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Signing in…" : "Sign in"}
           </Button>
+          {import.meta.env.DEV ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={loading}
+              onClick={() =>
+                signIn({ email: "dev@example.com", password: "password" })
+              }
+            >
+              Dev quick login
+            </Button>
+          ) : null}
           <div className="flex w-full items-center justify-between text-xs text-muted-foreground">
             <Link to="/register" className="text-foreground underline">
               Create account
