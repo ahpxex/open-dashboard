@@ -94,10 +94,9 @@ export type __TYPE__ListParams = z.infer<typeof __NAME__ListParamsSchema>;
 `;
 
 const serverTs = `import { createServerFn } from "@tanstack/react-start";
-import { and, asc, count, desc, eq, ilike, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db";
 import { __NAME__ } from "@/db/schema";
+import { drizzleRepository } from "@/infra/data/drizzle-repository";
 import { requireUser } from "@/lib/require-user";
 import {
   type __TYPE__ListParams,
@@ -106,51 +105,48 @@ import {
   __NAME__UpdateSchema,
 } from "./schema";
 
-const sortableColumns = {
-  name: __NAME__.name,
-  status: __NAME__.status,
-  createdAt: __NAME__.createdAt,
-} as const;
+export const __NAME__Repository = drizzleRepository(__NAME__, {
+  searchColumns: [__NAME__.name],
+  sortColumns: {
+    name: __NAME__.name,
+    status: __NAME__.status,
+    createdAt: __NAME__.createdAt,
+  },
+  filterColumns: { status: __NAME__.status },
+  defaultSort: { column: __NAME__.createdAt, dir: "desc" },
+  updatedAtKey: "updatedAt",
+});
+
+function toListParams(data: __TYPE__ListParams) {
+  return {
+    page: data.page,
+    pageSize: data.pageSize,
+    search: data.search,
+    sortBy: data.sortBy,
+    sortDir: data.sortDir,
+    filters: data.status ? { status: data.status } : undefined,
+  };
+}
 
 export const list__TITLE__ = createServerFn({ method: "GET" })
   .validator((data: __TYPE__ListParams) => __NAME__ListParamsSchema.parse(data))
   .handler(async ({ data }) => {
     await requireUser();
+    return __NAME__Repository.list(toListParams(data));
+  });
 
-    const conditions: SQL[] = [];
-    if (data.search) {
-      const term = \`%\${data.search}%\`;
-      conditions.push(ilike(__NAME__.name, term));
-    }
-    if (data.status) conditions.push(eq(__NAME__.status, data.status));
-    const where = conditions.length ? and(...conditions) : undefined;
-
-    const sortColumn =
-      sortableColumns[data.sortBy as keyof typeof sortableColumns] ??
-      __NAME__.createdAt;
-    const orderBy = data.sortDir === "asc" ? asc(sortColumn) : desc(sortColumn);
-    const offset = (data.page - 1) * data.pageSize;
-
-    const [rows, totalResult] = await Promise.all([
-      db
-        .select()
-        .from(__NAME__)
-        .where(where)
-        .orderBy(orderBy)
-        .limit(data.pageSize)
-        .offset(offset),
-      db.select({ value: count() }).from(__NAME__).where(where),
-    ]);
-
-    return { rows, total: totalResult[0]?.value ?? 0 };
+export const get__TYPE__ = createServerFn({ method: "GET" })
+  .validator((id: string) => z.string().min(1).parse(id))
+  .handler(async ({ data: id }) => {
+    await requireUser();
+    return __NAME__Repository.getOne(id);
   });
 
 export const create__TITLE__ = createServerFn({ method: "POST" })
   .validator((data: unknown) => __NAME__InputSchema.parse(data))
   .handler(async ({ data }) => {
     await requireUser();
-    const [row] = await db.insert(__NAME__).values(data).returning();
-    return row;
+    return __NAME__Repository.create(data);
   });
 
 export const update__TITLE__ = createServerFn({ method: "POST" })
@@ -158,19 +154,14 @@ export const update__TITLE__ = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await requireUser();
     const { id, ...values } = data;
-    const [row] = await db
-      .update(__NAME__)
-      .set({ ...values, updatedAt: new Date() })
-      .where(eq(__NAME__.id, id))
-      .returning();
-    return row;
+    return __NAME__Repository.update(id, values);
   });
 
 export const delete__TITLE__ = createServerFn({ method: "POST" })
   .validator((id: string) => z.string().min(1).parse(id))
   .handler(async ({ data: id }) => {
     await requireUser();
-    await db.delete(__NAME__).where(eq(__NAME__.id, id));
+    await __NAME__Repository.remove(id);
     return { id };
   });
 `;

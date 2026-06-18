@@ -11,8 +11,17 @@ import {
   type SQL,
 } from "drizzle-orm";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
-import { db } from "@/db";
 import type { ListParams, ListResult, Repository, SortDir } from "./repository";
+
+/**
+ * Lazily load the DB client. Importing `@/db` (and therefore `pg`) dynamically
+ * — inside methods that only ever run in stripped server-fn handlers — keeps the
+ * Postgres client out of the browser module graph even in dev (where there is no
+ * tree-shaking). Node caches the module, so subsequent calls are free.
+ */
+async function getDb() {
+  return (await import("@/db")).db;
+}
 
 /** A drizzle table that has an `id` column (every resource table does). */
 type TableWithId = PgTable & { id: AnyPgColumn };
@@ -82,6 +91,7 @@ export function drizzleRepository<TTable extends TableWithId>(
 
   return {
     async list(params) {
+      const db = await getDb();
       const where = buildWhere(params);
       const sortColumn =
         (params.sortBy && config.sortColumns[params.sortBy]) ||
@@ -108,6 +118,7 @@ export function drizzleRepository<TTable extends TableWithId>(
     },
 
     async getOne(id) {
+      const db = await getDb();
       const rows = (await db
         .select()
         .from(t)
@@ -117,6 +128,7 @@ export function drizzleRepository<TTable extends TableWithId>(
     },
 
     async create(input) {
+      const db = await getDb();
       const rows = (await db
         .insert(t)
         .values(input as never)
@@ -125,6 +137,7 @@ export function drizzleRepository<TTable extends TableWithId>(
     },
 
     async update(id, input) {
+      const db = await getDb();
       const values = config.updatedAtKey
         ? { ...input, [config.updatedAtKey]: new Date() }
         : input;
@@ -137,6 +150,7 @@ export function drizzleRepository<TTable extends TableWithId>(
     },
 
     async remove(id) {
+      const db = await getDb();
       await db.delete(t).where(eq(idColumn, id));
     },
   };

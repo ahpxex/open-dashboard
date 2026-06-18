@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { products } from "@/db/schema";
-import { drizzleRepository } from "@/infra/data";
+import { drizzleRepository } from "@/infra/data/drizzle-repository";
 import { requireUser } from "@/lib/require-user";
 import {
   type ProductListParams,
