@@ -1,8 +1,5 @@
-"use client";
-
-import { SquaresFourIcon } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { SquaresFourIcon } from "@phosphor-icons/react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +25,7 @@ const ACTIVE_CLASSES =
   "data-active:bg-primary data-active:font-medium data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground";
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon;
@@ -41,7 +38,7 @@ export function AppSidebar() {
           tooltip={item.label}
           className={ACTIVE_CLASSES}
           render={
-            <Link href={item.href}>
+            <Link to={item.href}>
               <Icon weight={isActive ? "fill" : "regular"} />
               <span>{item.label}</span>
             </Link>
@@ -59,7 +56,7 @@ export function AppSidebar() {
             <SquaresFourIcon size={18} weight="fill" />
           </div>
           <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-            The System
+            Open Dashboard
           </span>
         </div>
       </SidebarHeader>

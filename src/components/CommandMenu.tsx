@@ -1,9 +1,7 @@
-"use client";
-
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/ssr";
-import { DialogTitle } from "@radix-ui/react-dialog";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { useNavigate } from "@tanstack/react-router";
 import { Command } from "cmdk";
-import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useCallback, useEffect, useState } from "react";
 import { Kbd } from "@/components/ui/kbd";
 import {
@@ -25,10 +23,10 @@ interface CommandMenuProps {
 }
 
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { resolvedTheme, setTheme } = useTheme();
   const [search, setSearch] = useState("");
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -36,12 +34,10 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         onOpenChange(true);
       }
     };
-
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, [onOpenChange]);
 
-  // Reset search when closing
   useEffect(() => {
     if (!open) {
       setSearch("");
@@ -59,37 +55,35 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const handleItemSelect = useCallback(
     (item: CommandMenuItemConfig) => {
       if (item.href) {
-        router.push(item.href);
+        navigate({ to: item.href });
         return;
       }
-
       if (item.action === "toggleTheme") {
-        console.log("Toggle theme");
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
       }
     },
-    [router],
+    [navigate, resolvedTheme, setTheme],
   );
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
-        <div
+        <button
+          type="button"
+          aria-label="Close command menu"
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in"
           onClick={() => onOpenChange(false)}
         />
       )}
 
-      {/* Command Menu */}
       <Command.Dialog
         open={open}
         onOpenChange={onOpenChange}
         label="Global Command Menu"
         className="fixed left-[50%] top-[30%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-30%] animate-in fade-in-90 slide-in-from-bottom-10"
       >
-        <DialogTitle className="sr-only">Command Menu</DialogTitle>
+        <span className="sr-only">Command Menu</span>
         <div className="overflow-hidden rounded-none border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-2xl">
-          {/* Search Input */}
           <div className="flex items-center border-b border-gray-200 dark:border-gray-800 px-4">
             <MagnifyingGlassIcon
               size={20}
@@ -104,16 +98,14 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             <Kbd className="hidden sm:inline-flex">Esc</Kbd>
           </div>
 
-          {/* Command List */}
           <Command.List className="max-h-[400px] overflow-y-auto p-2">
             <Command.Empty className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
               No results found.
             </Command.Empty>
 
-            {/* Navigation Section */}
             <Command.Group
               heading="Navigation"
-              className="mb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 dark:[&_[cmdk-group-heading]]:text-gray-400"
+              className={`mb-2 ${GROUP_BASE_CLASS}`}
             >
               {[
                 ...mainMenuItems.flatMap((group) => group.items),
@@ -124,7 +116,9 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                   <Command.Item
                     key={item.label}
                     value={item.label}
-                    onSelect={() => runCommand(() => router.push(item.href))}
+                    onSelect={() =>
+                      runCommand(() => navigate({ to: item.href }))
+                    }
                     className={NEUTRAL_ITEM_CLASSES}
                   >
                     <Icon
@@ -196,7 +190,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             })}
           </Command.List>
 
-          {/* Footer */}
           <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-2.5 text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center justify-between">
               <span>Navigate with arrow keys</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon } from "@phosphor-icons/react/dist/ssr";
+import { BellIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,

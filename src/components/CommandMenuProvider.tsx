@@ -1,13 +1,7 @@
-"use client";
-
 import { useCommandMenu } from "@/stores/command-menu";
 import { CommandMenu } from "./CommandMenu";
 
-export function CommandMenuProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function CommandMenuProvider() {
   const isOpen = useCommandMenu((state) => state.isOpen);
   const close = useCommandMenu((state) => state.close);
   const open = useCommandMenu((state) => state.open);
@@ -20,10 +14,5 @@ export function CommandMenuProvider({
     }
   };
 
-  return (
-    <>
-      {children}
-      <CommandMenu open={isOpen} onOpenChange={handleOpenChange} />
-    </>
-  );
+  return <CommandMenu open={isOpen} onOpenChange={handleOpenChange} />;
 }
