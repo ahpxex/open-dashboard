@@ -41,10 +41,12 @@ skill lives in `.claude/skills/` and this file links to it.
 
 | Piece | Status | Notes |
 | --- | --- | --- |
-| `Repository<T, TInput>` interface | 🚧 | `list/getOne/create/update/remove` |
-| `drizzleRepository` | 🚧 | refactor products/orders onto it |
-| `restRepository` | 🚧 | example: `posts` via a public REST API |
-| `graphqlRepository` | 🚧 | same interface, documented |
+| `Repository<T, TInput>` interface | ✅ | `src/infra/data/repository.ts` — `list/getOne/create/update/remove` |
+| `drizzleRepository` | ✅ | `src/infra/data/drizzle-repository.ts` — backs products/orders |
+| `restRepository` | ✅ | `src/infra/data/rest-repository.ts` — backs `posts` (jsonplaceholder) |
+| `graphqlRepository` | ✅ | `src/infra/data/graphql-repository.ts` — shipped + unit-tested |
+
+See [`docs/data-adapters.md`](./docs/data-adapters.md) for the full guide.
 
 ---
 

@@ -3,6 +3,10 @@
 // from it without leaking a DB client into the browser bundle. The Drizzle
 // adapter touches `@/db`, so it is imported directly from
 // "@/infra/data/drizzle-repository" by the resources that use it.
+export {
+  type GraphqlRepositoryConfig,
+  graphqlRepository,
+} from "./graphql-repository";
 export type {
   ListParams,
   ListResult,
