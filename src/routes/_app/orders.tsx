@@ -1,9 +1,15 @@
 import { PlusIcon } from "@phosphor-icons/react";
+import { useForm } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import type { SortingState } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMemo, useState } from "react";
+import {
+  FormError,
+  SelectField,
+  SubmitButton,
+  TextareaField,
+  TextField,
+} from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
@@ -15,16 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { Order } from "@/db/schema";
 import { createOrdersColumns } from "@/features/orders/columns";
 import { ordersFilters, ordersTableConfig } from "@/features/orders/config";
@@ -36,47 +32,32 @@ import {
 } from "@/features/orders/queries";
 import {
   type OrderInput,
-  type OrderListParams,
+  ordersFormSchema,
+  ordersInputSchema,
+  ordersListParamsSchema,
   ordersStatuses,
 } from "@/features/orders/schema";
-import { DataTable } from "@/infra/table";
-
-const DEFAULT_PARAMS: OrderListParams = {
-  page: 1,
-  pageSize: ordersTableConfig.defaultPageSize,
-  search: "",
-  status: "",
-  sortBy: undefined,
-  sortDir: undefined,
-};
+import { DataTable, useTableSearch } from "@/infra/table";
+import { errorMessage } from "@/lib/toast";
 
 export const Route = createFileRoute("/_app/orders")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(ordersListQuery(DEFAULT_PARAMS)),
+  validateSearch: ordersListParamsSchema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(ordersListQuery(deps)),
   component: OrdersPage,
 });
 
 type DialogState = { mode: "create" | "edit"; row?: Order } | null;
 
 function OrdersPage() {
-  const [page, setPage] = useState(DEFAULT_PARAMS.page);
-  const [pageSize, setPageSize] = useState(DEFAULT_PARAMS.pageSize);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const table = useTableSearch(search, navigate);
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  const params: OrderListParams = {
-    page,
-    pageSize,
-    search,
-    status,
-    sortBy: sorting[0]?.id,
-    sortDir: sorting[0] ? (sorting[0].desc ? "desc" : "asc") : undefined,
-  };
-
   const query = useQuery({
-    ...ordersListQuery(params),
+    ...ordersListQuery(search),
     placeholderData: keepPreviousData,
   });
   const remove = useDeleteOrder();
@@ -113,34 +94,20 @@ function OrdersPage() {
         data={query.data?.rows ?? []}
         total={query.data?.total ?? 0}
         isLoading={query.isLoading || query.isFetching}
-        searchValue={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
+        searchValue={search.search}
+        onSearchChange={table.setSearch}
         searchPlaceholder={ordersTableConfig.searchPlaceholder}
         filters={ordersFilters}
-        filterValues={{ status }}
-        onFilterChange={(key, value) => {
-          if (key === "status") {
-            setStatus(value);
-            setPage(1);
-          }
-        }}
+        filterValues={{ status: search.status }}
+        onFilterChange={table.setFilter}
         onRefresh={() => query.refetch()}
-        sorting={sorting}
-        onSortingChange={(updater) => {
-          setSorting(updater);
-          setPage(1);
-        }}
-        page={page}
-        pageSize={pageSize}
+        sorting={table.sorting}
+        onSortingChange={table.onSortingChange}
+        page={search.page}
+        pageSize={search.pageSize}
         pageSizeOptions={ordersTableConfig.pageSizeOptions}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size);
-          setPage(1);
-        }}
+        onPageChange={table.setPage}
+        onPageSizeChange={table.setPageSize}
         emptyMessage={ordersTableConfig.emptyMessage}
         toolbarActions={
           <Button onClick={() => setDialog({ mode: "create" })}>
@@ -168,6 +135,8 @@ const EMPTY_FORM: OrderInput = {
   description: "",
 };
 
+const statusOptions = ordersStatuses.map((value) => ({ value, label: value }));
+
 function toForm(row?: Order): OrderInput {
   if (!row) return { ...EMPTY_FORM };
   return {
@@ -188,36 +157,6 @@ function OrderFormDialog({
   row?: Order;
   onOpenChange: (open: boolean) => void;
 }) {
-  const create = useCreateOrder();
-  const update = useUpdateOrder();
-  const [form, setForm] = useState<OrderInput>(() => toForm(row));
-  const [error, setError] = useState<string | null>(null);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on open
-  useEffect(() => {
-    if (open) {
-      setForm(toForm(row));
-      setError(null);
-    }
-  }, [open, row]);
-
-  const pending = create.isPending || update.isPending;
-
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    try {
-      if (mode === "edit" && row) {
-        await update.mutateAsync({ id: row.id, ...form });
-      } else {
-        await create.mutateAsync(form);
-      }
-      onOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -227,62 +166,85 @@ function OrderFormDialog({
           </DialogTitle>
           <DialogDescription>Fill in the details below.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(value) =>
-                setForm({ ...form, status: value as OrderInput["status"] })
-              }
-            >
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ordersStatuses.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={3}
-              value={form.description ?? ""}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>
-              Cancel
-            </DialogClose>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </form>
+
+        {open ? (
+          <OrderForm
+            key={row?.id ?? "new"}
+            mode={mode}
+            row={row}
+            onDone={() => onOpenChange(false)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function OrderForm({
+  mode,
+  row,
+  onDone,
+}: {
+  mode: "create" | "edit";
+  row?: Order;
+  onDone: () => void;
+}) {
+  const create = useCreateOrder();
+  const update = useUpdateOrder();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: toForm(row),
+    validators: { onChange: ordersFormSchema },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      const payload = ordersInputSchema.parse(value);
+      try {
+        if (mode === "edit" && row) {
+          await update.mutateAsync({ id: row.id, ...payload });
+        } else {
+          await create.mutateAsync(payload);
+        }
+        onDone();
+      } catch (err) {
+        setServerError(errorMessage(err));
+      }
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <FormError message={serverError} />
+
+      <TextField form={form} name="name" label="Name" required />
+
+      <SelectField
+        form={form}
+        name="status"
+        label="Status"
+        options={statusOptions}
+      />
+
+      <TextareaField
+        form={form}
+        name="description"
+        label="Description"
+        rows={3}
+      />
+
+      <DialogFooter>
+        <DialogClose render={<Button type="button" variant="outline" />}>
+          Cancel
+        </DialogClose>
+        <SubmitButton form={form}>Save</SubmitButton>
+      </DialogFooter>
+    </form>
   );
 }

@@ -10,6 +10,13 @@ export const ordersInputSchema = z.object({
 });
 export type OrderInput = z.infer<typeof ordersInputSchema>;
 
+/** Client-side form validator (input types match the TanStack Form values). */
+export const ordersFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  status: z.enum(ordersStatuses),
+  description: z.string(),
+});
+
 export const ordersUpdateSchema = ordersInputSchema.extend({
   id: z.string().min(1),
 });

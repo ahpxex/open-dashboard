@@ -22,7 +22,6 @@ import { TableToolbar } from "./TableToolbar";
 import type { FilterConfig } from "./types";
 
 export interface DataTableProps<T> {
-  // biome-ignore lint/suspicious/noExplicitAny: column defs are heterogeneous
   columns: ColumnDef<T, any>[];
   data: T[];
   total: number;

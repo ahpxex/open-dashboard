@@ -2,7 +2,6 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import type { SortingState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import {
   FormError,
@@ -37,50 +36,32 @@ import {
 } from "@/features/products/queries";
 import {
   type ProductInput,
-  type ProductListParams,
   productFormSchema,
   productInputSchema,
+  productListParamsSchema,
   productStatuses,
 } from "@/features/products/schema";
-import { DataTable } from "@/infra/table";
+import { DataTable, useTableSearch } from "@/infra/table";
 import { errorMessage } from "@/lib/toast";
 
-const DEFAULT_PARAMS: ProductListParams = {
-  page: 1,
-  pageSize: productsTableConfig.defaultPageSize,
-  search: "",
-  status: "",
-  sortBy: undefined,
-  sortDir: undefined,
-};
-
 export const Route = createFileRoute("/_app/products")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(productsListQuery(DEFAULT_PARAMS)),
+  validateSearch: productListParamsSchema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(productsListQuery(deps)),
   component: ProductsPage,
 });
 
 type DialogState = { mode: "create" | "edit"; product?: Product } | null;
 
 function ProductsPage() {
-  const [page, setPage] = useState(DEFAULT_PARAMS.page);
-  const [pageSize, setPageSize] = useState(DEFAULT_PARAMS.pageSize);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const table = useTableSearch(search, navigate);
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  const params: ProductListParams = {
-    page,
-    pageSize,
-    search,
-    status,
-    sortBy: sorting[0]?.id,
-    sortDir: sorting[0] ? (sorting[0].desc ? "desc" : "asc") : undefined,
-  };
-
   const query = useQuery({
-    ...productsListQuery(params),
+    ...productsListQuery(search),
     placeholderData: keepPreviousData,
   });
 
@@ -121,34 +102,20 @@ function ProductsPage() {
         data={query.data?.rows ?? []}
         total={query.data?.total ?? 0}
         isLoading={query.isLoading || query.isFetching}
-        searchValue={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
+        searchValue={search.search}
+        onSearchChange={table.setSearch}
         searchPlaceholder={productsTableConfig.searchPlaceholder}
         filters={productsFilters}
-        filterValues={{ status }}
-        onFilterChange={(key, value) => {
-          if (key === "status") {
-            setStatus(value);
-            setPage(1);
-          }
-        }}
+        filterValues={{ status: search.status }}
+        onFilterChange={table.setFilter}
         onRefresh={() => query.refetch()}
-        sorting={sorting}
-        onSortingChange={(updater) => {
-          setSorting(updater);
-          setPage(1);
-        }}
-        page={page}
-        pageSize={pageSize}
+        sorting={table.sorting}
+        onSortingChange={table.onSortingChange}
+        page={search.page}
+        pageSize={search.pageSize}
         pageSizeOptions={productsTableConfig.pageSizeOptions}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size);
-          setPage(1);
-        }}
+        onPageChange={table.setPage}
+        onPageSizeChange={table.setPageSize}
         emptyMessage={productsTableConfig.emptyMessage}
         toolbarActions={
           <Button onClick={() => setDialog({ mode: "create" })}>
