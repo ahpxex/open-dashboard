@@ -1,22 +1,20 @@
-"use client";
-
 import {
-  ChartLine,
-  Clock,
-  CurrencyDollar,
-  TrendDown,
-  TrendUp,
-  Users,
+  ChartLineIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  TrendDownIcon,
+  TrendUpIcon,
+  UsersIcon,
 } from "@phosphor-icons/react";
-import { useGetIdentity } from "@refinedev/core";
+import { createFileRoute } from "@tanstack/react-router";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -28,13 +26,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { SessionUser } from "@/lib/auth/session";
 import { useThemeColors } from "@/lib/color-theme";
 import {
   categoryData,
   monthlyRevenueData,
   trafficSourceData,
 } from "@/lib/dashboard/chart-data";
+
+export const Route = createFileRoute("/_app/")({
+  component: DashboardHome,
+});
 
 const trendUpBadge =
   "border-transparent bg-green-500/15 text-green-700 dark:text-green-400";
@@ -43,7 +44,7 @@ const trendDownBadge = "border-transparent bg-destructive/15 text-destructive";
 type Stat = {
   label: string;
   value: string;
-  icon: typeof Users;
+  icon: typeof UsersIcon;
   trend: string;
   trendUp: boolean;
   progress: number;
@@ -54,7 +55,7 @@ const STATS: Stat[] = [
   {
     label: "Total Users",
     value: "1,234",
-    icon: Users,
+    icon: UsersIcon,
     trend: "12%",
     trendUp: true,
     progress: 65,
@@ -63,7 +64,7 @@ const STATS: Stat[] = [
   {
     label: "Revenue",
     value: "$45,678",
-    icon: CurrencyDollar,
+    icon: CurrencyDollarIcon,
     trend: "8%",
     trendUp: true,
     progress: 78,
@@ -72,7 +73,7 @@ const STATS: Stat[] = [
   {
     label: "Active Sessions",
     value: "432",
-    icon: Clock,
+    icon: ClockIcon,
     trend: "5%",
     trendUp: true,
     progress: 43,
@@ -81,7 +82,7 @@ const STATS: Stat[] = [
   {
     label: "Conversion Rate",
     value: "3.24%",
-    icon: ChartLine,
+    icon: ChartLineIcon,
     trend: "2%",
     trendUp: false,
     progress: 32,
@@ -96,32 +97,32 @@ const ACTIVITY = [
   { user: "Alice Brown", action: "Generated report", time: "2 hours ago" },
 ];
 
-export default function DashboardPage() {
-  const { data: user } = useGetIdentity<SessionUser>();
+function DashboardHome() {
+  const { user } = Route.useRouteContext();
   const themeColors = useThemeColors();
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
             Dashboard Overview
           </h1>
-          <p className="mt-1 text-muted-foreground">
-            Welcome back, {user?.name || user?.email}
+          <p className="mt-1 text-sm text-muted-foreground">
+            Welcome back, {user.name}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button variant="outline">Export Report</Button>
           <Button>Create New</Button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {STATS.map((stat) => {
           const Icon = stat.icon;
-          const TrendIcon = stat.trendUp ? TrendUp : TrendDown;
+          const TrendIcon = stat.trendUp ? TrendUpIcon : TrendDownIcon;
           return (
             <Card key={stat.label}>
               <CardContent className="flex flex-col gap-3">
@@ -142,7 +143,7 @@ export default function DashboardPage() {
                     {stat.trend}
                   </Badge>
                 </div>
-                <p className="text-3xl font-bold tracking-tight">
+                <p className="text-3xl font-bold tracking-tight tabular-nums">
                   {stat.value}
                 </p>
                 <Progress value={stat.progress} className="mt-1" />
@@ -154,7 +155,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">
@@ -164,33 +165,63 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart
+              <AreaChart
                 data={monthlyRevenueData}
                 margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
               >
+                <defs>
+                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor={themeColors.chartColors.primary}
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={themeColors.chartColors.primary}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                  <linearGradient id="usersFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor={themeColors.chartColors.secondary}
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={themeColors.chartColors.secondary}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke={themeColors.chartColors.grid}
                 />
-                <XAxis dataKey="name" stroke={themeColors.chartColors.axis} />
-                <YAxis stroke={themeColors.chartColors.axis} />
+                <XAxis
+                  dataKey="name"
+                  stroke={themeColors.chartColors.axis}
+                  fontSize={12}
+                />
+                <YAxis stroke={themeColors.chartColors.axis} fontSize={12} />
                 <Tooltip />
                 <Legend />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="revenue"
                   stroke={themeColors.chartColors.primary}
                   strokeWidth={2}
-                  dot={{ fill: themeColors.chartColors.primary }}
+                  fill="url(#revenueFill)"
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="users"
                   stroke={themeColors.chartColors.secondary}
                   strokeWidth={2}
-                  dot={{ fill: themeColors.chartColors.secondary }}
+                  fill="url(#usersFill)"
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -210,8 +241,12 @@ export default function DashboardPage() {
                   strokeDasharray="3 3"
                   stroke={themeColors.chartColors.grid}
                 />
-                <XAxis dataKey="name" stroke={themeColors.chartColors.axis} />
-                <YAxis stroke={themeColors.chartColors.axis} />
+                <XAxis
+                  dataKey="name"
+                  stroke={themeColors.chartColors.axis}
+                  fontSize={12}
+                />
+                <YAxis stroke={themeColors.chartColors.axis} fontSize={12} />
                 <Tooltip />
                 <Bar dataKey="value" fill={themeColors.chartColors.primary} />
               </BarChart>
@@ -227,17 +262,17 @@ export default function DashboardPage() {
             <CardTitle className="text-base">Traffic Sources</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={trafficSourceData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={(props: any) =>
-                    `${props.name} ${(props.percent * 100).toFixed(0)}%`
+                  label={(props) =>
+                    `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`
                   }
-                  outerRadius={100}
+                  outerRadius={95}
                   dataKey="value"
                 >
                   {trafficSourceData.map((entry, index) => (

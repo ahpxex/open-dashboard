@@ -1,15 +1,12 @@
-"use client";
-
 import {
-  BellIcon,
   GearIcon,
   MoonIcon,
   SignOutIcon,
-  UserIcon,
-} from "@phosphor-icons/react/dist/ssr";
-import { useGetIdentity, useLogout } from "@refinedev/core";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+  SunIcon,
+} from "@phosphor-icons/react";
+import { useNavigate } from "@tanstack/react-router";
+import { useTheme } from "next-themes";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
-import type { SessionUser } from "@/lib/auth/session";
+import { authClient } from "@/lib/auth-client";
 
 function getInitials(name: string): string {
   return name
@@ -35,66 +32,19 @@ function getInitials(name: string): string {
 }
 
 export function UserAvatar() {
-  const router = useRouter();
-  const { data: identity, isLoading: isIdentityLoading } =
-    useGetIdentity<SessionUser>();
-  const { mutateAsync: logout } = useLogout();
+  const navigate = useNavigate();
+  const { resolvedTheme, setTheme } = useTheme();
+  const { data: session, isPending } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (signOutError) {
-      console.error("[auth] Sign out failed:", signOutError);
-    }
-  }, [signOutError]);
+  const user = session?.user;
+  const displayName = user?.name || user?.email || "User";
 
-  const displayName = useMemo(() => {
-    if (identity?.name) {
-      return identity.name;
-    }
-    return identity?.email ?? "User";
-  }, [identity]);
-
-  const avatarSrc = undefined;
-
-  const handleAction = async (key: string) => {
-    switch (key) {
-      case "profile":
-        router.push("/profile");
-        break;
-      case "settings":
-        router.push("/settings");
-        break;
-      case "notifications":
-        router.push("/notifications");
-        break;
-      case "theme":
-        // Toggle theme logic here
-        break;
-      case "logout":
-        try {
-          setIsSigningOut(true);
-          setSignOutError(null);
-          const response = await logout();
-          if (response?.success === false) {
-            setSignOutError(
-              response.error?.message ||
-                "Unable to sign out. Please try again.",
-            );
-            return;
-          }
-          router.push("/login");
-          router.refresh();
-        } catch (error: any) {
-          setSignOutError(
-            error.message ?? "Unable to sign out. Please try again.",
-          );
-        } finally {
-          setIsSigningOut(false);
-        }
-        break;
-    }
-  };
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    await authClient.signOut();
+    navigate({ to: "/login" });
+  }
 
   return (
     <DropdownMenu>
@@ -104,11 +54,11 @@ export function UserAvatar() {
             <span className="hidden text-sm font-medium text-foreground sm:inline">
               {displayName}
             </span>
-            {isIdentityLoading ? (
+            {isPending ? (
               <Spinner />
             ) : (
               <Avatar size="sm">
-                <AvatarImage src={avatarSrc} alt={displayName} />
+                <AvatarImage src={user?.image ?? undefined} alt={displayName} />
                 <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
               </Avatar>
             )}
@@ -117,44 +67,30 @@ export function UserAvatar() {
       />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Account</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => handleAction("profile")}>
-            <UserIcon size={18} />
-            <div className="flex flex-col">
-              <span>Profile</span>
-              <span className="text-xs text-muted-foreground">
-                View your profile
-              </span>
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("settings")}>
+          <DropdownMenuLabel>{user?.email ?? "Account"}</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
             <GearIcon size={18} />
             <div className="flex flex-col">
               <span>Settings</span>
               <span className="text-xs text-muted-foreground">
-                Manage your settings
+                Manage your account
               </span>
             </div>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("notifications")}>
-            <BellIcon size={18} />
+          <DropdownMenuItem
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+          >
+            {resolvedTheme === "dark" ? (
+              <SunIcon size={18} />
+            ) : (
+              <MoonIcon size={18} />
+            )}
             <div className="flex flex-col">
-              <span>Notifications</span>
+              <span>Toggle theme</span>
               <span className="text-xs text-muted-foreground">
-                View notifications
-              </span>
-            </div>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Preferences</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => handleAction("theme")}>
-            <MoonIcon size={18} />
-            <div className="flex flex-col">
-              <span>Theme</span>
-              <span className="text-xs text-muted-foreground">
-                Toggle dark mode
+                Switch light / dark
               </span>
             </div>
           </DropdownMenuItem>
@@ -163,13 +99,13 @@ export function UserAvatar() {
         <DropdownMenuItem
           variant="destructive"
           disabled={isSigningOut}
-          onClick={() => handleAction("logout")}
+          onClick={handleSignOut}
         >
           <SignOutIcon size={18} />
           <div className="flex flex-col">
-            <span>Logout</span>
+            <span>Sign out</span>
             <span className="text-xs text-muted-foreground">
-              Sign out of your account
+              End your session
             </span>
           </div>
         </DropdownMenuItem>

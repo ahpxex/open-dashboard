@@ -3,7 +3,7 @@ import {
   MoonIcon,
   SignOutIcon,
   UserIcon,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 import type { ComponentType } from "react";
 
 export type CommandMenuIcon = ComponentType<{

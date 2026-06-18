@@ -1,14 +1,22 @@
-import Link from "next/link";
+import { createLink } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
+const StyledLink = createLink((props: ComponentProps<"a">) => (
+  // biome-ignore lint/a11y/useAnchorContent: content is provided by children
+  <a {...props} />
+));
+
 /**
- * Inline text link styled to match the design system. Replaces HeroUI's
- * `<Link>` for in-content links.
+ * Inline text link styled to match the design system, wired to the
+ * TanStack Router link so it gets prefetching + typed routes.
  */
-export function TextLink({ className, ...props }: ComponentProps<typeof Link>) {
+export function TextLink({
+  className,
+  ...props
+}: ComponentProps<typeof StyledLink>) {
   return (
-    <Link
+    <StyledLink
       className={cn(
         "font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80",
         className,

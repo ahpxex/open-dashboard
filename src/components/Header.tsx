@@ -1,6 +1,4 @@
-"use client";
-
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/ssr";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
@@ -18,7 +16,6 @@ export function Header() {
         <div className="flex flex-1 items-center gap-3">
           <SidebarTrigger className="-ml-2 shrink-0" />
           <Separator orientation="vertical" className="h-6" />
-          {/* Search Box */}
           <Button
             variant="outline"
             onClick={open}

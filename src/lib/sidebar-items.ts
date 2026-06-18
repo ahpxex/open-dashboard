@@ -1,13 +1,9 @@
 import type { Icon } from "@phosphor-icons/react";
 
 import {
-  BellIcon,
-  CalendarIcon,
   GearIcon,
   HouseIcon,
-  TableIcon,
-  TextboxIcon,
-  UserIcon,
+  PackageIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
 
@@ -24,41 +20,11 @@ export interface MenuGroup {
 
 export const mainMenuItems: MenuGroup[] = [
   {
-    items: [{ label: "Dashboard", href: "/", icon: HouseIcon }],
-  },
-  {
-    groupLabel: "Table",
     items: [
-      { label: "Simple", href: "/tables/simple", icon: TableIcon },
-      { label: "Pagination", href: "/tables/pagination", icon: TableIcon },
-      { label: "Actions", href: "/tables/actions", icon: TableIcon },
-      { label: "Rich Cell", href: "/tables/rich-cell", icon: TableIcon },
-      { label: "Selectables", href: "/tables/selectables", icon: TableIcon },
-    ],
-  },
-  {
-    groupLabel: "Forms",
-    items: [
-      {
-        label: "User & Profile",
-        href: "/forms/user-profile",
-        icon: TextboxIcon,
-      },
-      {
-        label: "Data Management",
-        href: "/forms/data-management",
-        icon: TextboxIcon,
-      },
-      {
-        label: "Settings & Config",
-        href: "/forms/settings-config",
-        icon: TextboxIcon,
-      },
-      {
-        label: "Interaction & Filtering",
-        href: "/forms/interaction-filtering",
-        icon: TextboxIcon,
-      },
+      { label: "Dashboard", href: "/", icon: HouseIcon },
+      { label: "Products", href: "/products", icon: PackageIcon },
+      { label: "Orders", href: "/orders", icon: PackageIcon },
+      // create-resource:anchor (keep this line — generated resources are inserted above)
     ],
   },
   {
