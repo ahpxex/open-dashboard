@@ -1,10 +1,10 @@
 import {
-  ChartLineIcon,
-  ClockIcon,
   CurrencyDollarIcon,
+  ListChecksIcon,
+  TicketIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AreaChart,
   BarChart,
@@ -16,7 +16,7 @@ import {
   type StatCardProps,
 } from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   categoryData,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/dashboard/chart-data";
 
 export const Route = createFileRoute("/_app/")({
-  component: DashboardHome,
+  component: TaoracleOverview,
 });
 
 const trendUpBadge =
@@ -34,46 +34,61 @@ const trendUpBadge =
 const STATS: StatCardProps[] = [
   {
     label: "Total Users",
-    value: "1,234",
+    value: "2,847",
     icon: UsersIcon,
     trend: { value: "12%", up: true },
-    progress: 65,
-    sub: "65% of monthly target",
+    progress: 71,
+    sub: "71% of quarter target",
   },
   {
-    label: "Revenue",
-    value: "$45,678",
+    label: "Monthly Revenue",
+    value: "$48,250",
     icon: CurrencyDollarIcon,
     trend: { value: "8%", up: true },
     progress: 78,
     sub: "78% of monthly target",
   },
   {
-    label: "Active Sessions",
-    value: "432",
-    icon: ClockIcon,
-    trend: { value: "5%", up: true },
-    progress: 43,
-    sub: "Peak: 542 sessions",
+    label: "Active Tasks",
+    value: "37",
+    icon: ListChecksIcon,
+    trend: { value: "6", up: true },
+    progress: 48,
+    sub: "9 due this week",
   },
   {
-    label: "Conversion Rate",
-    value: "3.24%",
-    icon: ChartLineIcon,
-    trend: { value: "2%", up: false },
-    progress: 32,
-    sub: "Industry avg: 3.5%",
+    label: "Codes Redeemed",
+    value: "6,432",
+    icon: TicketIcon,
+    trend: { value: "18%", up: true },
+    progress: 64,
+    sub: "Across 12 campaigns",
   },
 ];
 
 const ACTIVITY = [
-  { user: "John Doe", action: "Created new project", time: "2 min ago" },
-  { user: "Jane Smith", action: "Updated dashboard", time: "15 min ago" },
-  { user: "Bob Wilson", action: "Added new users", time: "1 hour ago" },
-  { user: "Alice Brown", action: "Generated report", time: "2 hours ago" },
+  {
+    user: "Avery Quinn",
+    action: "Upgraded to the Scale plan",
+    time: "2 min ago",
+  },
+  { user: "Jordan Lee", action: "Redeemed code LAUNCH25", time: "18 min ago" },
+  { user: "Priya Nair", action: "Invited 3 teammates", time: "1 hour ago" },
+  {
+    user: "Mateo Rossi",
+    action: "Closed task “SSO enforcement”",
+    time: "3 hours ago",
+  },
 ];
 
-function DashboardHome() {
+const QUICK_ACTIONS = [
+  { label: "Manage users", to: "/taoracle/users" },
+  { label: "Create a code", to: "/taoracle/affiliate" },
+  { label: "Open task board", to: "/taoracle/tasks" },
+  { label: "Write a post", to: "/posts" },
+];
+
+function TaoracleOverview() {
   const { user } = Route.useRouteContext();
 
   return (
@@ -81,15 +96,22 @@ function DashboardHome() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Dashboard Overview
+            taoracle
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Welcome back, {user.name}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">Export Report</Button>
-          <Button>Create New</Button>
+          <Link
+            to="/taoracle/users"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            View users
+          </Link>
+          <Link to="/taoracle/affiliate" className={buttonVariants()}>
+            New code
+          </Link>
         </div>
       </div>
 
@@ -117,20 +139,20 @@ function DashboardHome() {
         </ChartCard>
 
         <ChartCard
-          title="Product Performance"
-          action={<Badge variant="secondary">Top 5 Products</Badge>}
+          title="Signups by Plan"
+          action={<Badge variant="secondary">This quarter</Badge>}
         >
           <BarChart
             data={categoryData}
             xKey="name"
-            bars={[{ key: "value", label: "Sales" }]}
+            bars={[{ key: "value", label: "Signups" }]}
           />
         </ChartCard>
       </div>
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <ChartCard title="Traffic Sources">
+        <ChartCard title="Acquisition Channels">
           <PieChart data={trafficSourceData} nameKey="name" valueKey="value" />
         </ChartCard>
 
@@ -171,18 +193,18 @@ function DashboardHome() {
             <CardTitle className="text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2.5">
-            <Button className="w-full justify-start" variant="outline">
-              Generate Report
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              Invite Team Member
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              View Analytics
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              Manage Settings
-            </Button>
+            {QUICK_ACTIONS.map((action) => (
+              <Link
+                key={action.to}
+                to={action.to}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "w-full justify-start",
+                })}
+              >
+                {action.label}
+              </Link>
+            ))}
 
             <div className="mt-3 border border-border bg-muted/40 p-4">
               <p className="mb-3 text-sm font-semibold">System Status</p>
