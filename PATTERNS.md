@@ -53,6 +53,29 @@ See [`docs/data-adapters.md`](./docs/data-adapters.md) for data adapters and
 
 ---
 
+## Business scenarios (composed verticals)
+
+The sidebar's scenario groups assemble the patterns above into complete
+back-offices — the closest thing to "a real app" in the repo, and the best worked
+examples of *composition*. Each is **memory-backed** (`features/<name>/` binds
+`memoryRepository(demoX, {…})` directly — zero-config, no Drizzle table) and
+independently removable.
+
+| Scenario | Routes | Composes |
+| --- | --- | --- |
+| **taoracle** | `/`, `routes/_app/taoracle/*` | chart page · kanban (`tasks`) · CRUD table (`users`) · inline-edit (`redemptionCodes`) |
+| **E-commerce** | `/products`, `/orders`, `/customers`, `/refunds` | CRUD table · master-detail · detail page (`customers`) |
+| **Helpdesk** | `routes/_app/helpdesk/*` | master-detail + kanban + timeline over one `tickets` resource |
+| **Sales (CRM)** | `routes/_app/crm/*` | kanban (`deals`) · table (`contacts`) · card list + detail (`companies`) · charts |
+| **People (HR)** | `routes/_app/hr/*` | tree (`employees`) · list · calendar (`leaveRequests`) · wizard |
+| **Fleet (IoT)** | `routes/_app/fleet/*` | virtualized table (`devices`) · timeline (`alerts`) · charts · control page |
+| **Typing platform** | `routes/_app/typing/*` | tables (`articles`, `classes`) · card list (`students`) · leaderboard + inline-edit (`scores`) |
+
+To persist a scenario, add a Drizzle table and switch its `server.ts` to
+`drizzleRepository` — the queries / table / form / detail are unchanged.
+
+---
+
 ## Shared invariants (every pattern obeys these)
 
 1. **List params** are one shape everywhere:

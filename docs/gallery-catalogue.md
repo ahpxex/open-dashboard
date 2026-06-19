@@ -3,8 +3,14 @@
 > The **gallery of admin UI shapes**: a rich palette an agent picks from and
 > **trims on port** (`trim-gallery`). All variants below are **built, green
 > (typecheck/check/test/build), and zero-config runnable** — each is a
-> self-contained route under `src/routes/_app/gallery/`, grouped in the sidebar
-> under `Gallery · …`, with an `add-*` skill in `.claude/skills/`.
+> self-contained route under `src/routes/_app/gallery/`, surfaced through the
+> single tabbed **`Gallery · Overview`** (`/gallery`, `gallery/index.tsx`) and
+> **not** listed individually in the sidebar, with an `add-*` skill in
+> `.claude/skills/`.
+>
+> The sidebar's **business-scenario groups** (taoracle, E-commerce, Helpdesk,
+> Sales/CRM, People/HR, Fleet/IoT, Typing) **compose** these shapes into real
+> back-offices — see the "Business scenarios" section of `CLAUDE.md`.
 
 Legend: ✅ built & verified · `skill` = the skill that adds/edits it.
 
@@ -139,10 +145,11 @@ on. Each is documented once and demonstrated by ≥1 variant below.
 
 ## Trim on port
 
-Because every variant is self-contained, extend `strip-demo` / `/port` into a
-**`trim-gallery`** step: the agent keeps the categories/variants the brief needs
-and deletes the rest (route + feature folder + sidebar entry + catalogue row),
-leaving a focused app. One `remove-*` skill per archetype backs this.
+Because every variant is self-contained, the **`trim-gallery`** skill keeps the
+shapes the brief needs and deletes the rest: edit the `SHAPES` array in
+`gallery/index.tsx` and delete the matching route files. The sidebar has a
+single `Gallery · Overview` entry (no per-variant rows to prune). Remove the
+whole group to drop the gallery entirely.
 
 ## Suggested build order (each phase ends zero-config-green + signed off)
 
@@ -160,7 +167,9 @@ leaving a focused app. One `remove-*` skill per archetype backs this.
 
 - **Scope**: build everything, including the heavy views (kanban / tree / calendar
   / timeline). Done.
-- **Sidebar**: grouped under labelled `Gallery · …` sections.
+- **Sidebar**: a single `Gallery · Overview` entry — a tabbed catalogue
+  (`gallery/index.tsx`, the `SHAPES` array); individual demos are reached from it,
+  not listed separately.
 - **Routes**: all gallery demos nested under `src/routes/_app/gallery/*` (+ a few
   components under `src/components/{data,feedback}` and `ComboboxField.tsx`), so the
   whole gallery trims as a unit via `trim-gallery`.

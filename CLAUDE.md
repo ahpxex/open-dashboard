@@ -53,7 +53,7 @@ The DB table itself goes in `src/db/schema.ts` alongside `products`.
 
 ### Sidebar
 
-Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. New resources add an item to `mainMenuItems`; the line `// create-resource:anchor` marks where the generator inserts entries.
+Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. The sidebar is organised by **business scenario** — each group (`taoracle`, `E-commerce`, `Helpdesk`, `Sales (CRM)`, `People (HR)`, `Fleet (IoT)`, `Typing platform`) is a complete back-office; the single `Gallery` group at the bottom is the entry to the UI-shape palette. New resources add an item to `mainMenuItems` (`// create-resource:anchor` marks where the generator inserts entries); new scenario groups go above the `// gallery:anchor` line.
 
 ### Platform layers (compose from these — don't reinvent)
 
@@ -64,22 +64,39 @@ Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottom
 
 ### Gallery (UI-shape palette)
 
-`src/routes/_app/gallery/*` is a **gallery of admin UI shapes** — a broad palette
-of forms, lists, pages, and rich views (kanban, tree, calendar, timeline, …) that
-an agent picks from when composing a real app. Each variant is a **self-contained
-route** (some pair with small components under `src/components/data`,
-`src/components/feedback`, or `src/components/form/ComboboxField.tsx`), runs
-**zero-config** on local/in-memory data, and follows the same conventions as the
-rest of the app (page-shell heading, form system, `toast`, theme tokens, and —
-where it shows data plumbing — `ListParams`/URL state). Gallery demos are
-**illustrative**: most use local/static data and do **not** add Drizzle tables —
-they teach the *shape*, not a persisted resource.
+`src/routes/_app/gallery/*` is a **palette of admin UI shapes** — forms, lists,
+pages, and rich views (kanban, tree, calendar, timeline, …) an agent picks from
+when composing a real app. Each variant is a **self-contained route** (some pair
+with small components under `src/components/data`, `src/components/feedback`, or
+`src/components/form/ComboboxField.tsx`), runs **zero-config** on local/static
+data, and teaches the *shape*, not a persisted resource (no Drizzle tables).
 
-The sidebar surfaces them in labelled groups (`Gallery · Forms`, `Gallery · Lists`,
-…) inserted at the `// gallery:anchor` line in `src/lib/sidebar-items.ts`. The full
-menu is `docs/gallery-catalogue.md`. On port, keep the shapes the product needs and
-run the **`trim-gallery`** skill to delete the rest (route + any local component +
-sidebar entry + catalogue row — each variant is independently removable).
+They are surfaced through a **single sidebar entry** — `Gallery · Overview`
+(`/gallery`, `gallery/index.tsx`): a tabbed catalogue (Forms / Lists & tables /
+Rich views / Detail & pages / Display & feedback) whose cards link to each demo.
+The individual demo routes stay under `gallery/*` but are **not** listed in the
+sidebar. Full menu: `docs/gallery-catalogue.md`. On port, edit the `SHAPES` array
+in `gallery/index.tsx` to keep what you need and run the **`trim-gallery`** skill
+to delete the rest.
+
+### Business scenarios (composed examples)
+
+Below the demo resources, the sidebar carries **complete business back-offices**
+that *compose* the gallery shapes into believable products — the richest reference
+for "how do I assemble a real vertical". Each scenario's data is a **memory-backed
+resource** (`features/<name>/` with `memoryRepository` + `demo-data.ts` — real
+zero-config CRUD, no Drizzle table):
+
+- **taoracle** (`/`, `/taoracle/*`) — SaaS overview (charts) · Tasks (kanban) · Users (CRUD table) · Affiliate codes (inline-edit) · Blog (reuses `posts`).
+- **E-commerce** (`/products`, `/orders`, `/customers`, `/refunds`) — folds the `products`/`orders` demos in, adds Customers (CRUD + detail) and Refunds.
+- **Helpdesk** (`/helpdesk/*`) — one `tickets` resource as Inbox (master-detail) + Triage board (kanban) + Overview (SLA stats + timeline).
+- **Sales (CRM)** (`/crm/*`) — deals pipeline (kanban) · contacts (table) · companies (card list + detail) · forecast (charts).
+- **People (HR)** (`/hr/*`) — org chart (tree) · directory (list) · time off (calendar) · onboarding (wizard).
+- **Fleet (IoT)** (`/fleet/*`) — devices (virtualized table) · alerts (timeline) · overview (charts) · settings (control page).
+- **Typing platform** (`/typing/*`) — articles (table) · students (card list) · scores (leaderboard + inline-edit) · classes (table).
+
+Each scenario is independently removable (delete `features/<name>/` + its routes +
+its sidebar group).
 
 ### Agent layer
 
