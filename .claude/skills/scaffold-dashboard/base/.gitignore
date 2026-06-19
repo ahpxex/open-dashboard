@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# build output
+/dist
+/build
+/.output
+/.nitro
+/.tanstack
+
+# generated
+src/routeTree.gen.ts
+*.tsbuildinfo
+
+# testing
+/coverage
+
+# env files
+.env*
+!.env.example
+
+# editor / os
+.DS_Store
+*.pem
+.vercel
+.serena
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
