@@ -587,9 +587,39 @@ export const __NAME__ = pgTable("__NAME__", {
 export type __TYPE__ = typeof __NAME__.$inferSelect;
 export type New__TYPE__ = typeof __NAME__.$inferInsert;
 `);
+/** Ensure `import { ... } from "<module>"` includes `names` (add any missing). */
+function ensureNamedImports(
+  src: string,
+  module: string,
+  names: string[],
+): string {
+  const re = new RegExp(`import\\s*\\{([^}]*)\\}\\s*from\\s*"${module}"`);
+  const m = src.match(re);
+  if (!m) return src;
+  const existing = m[1]
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const have = new Set(
+    existing.map((s) => s.replace(/^type\s+/, "").split(/\s+as\s+/)[0].trim()),
+  );
+  const missing = names.filter((n) => !have.has(n));
+  if (!missing.length) return src;
+  const merged = [...existing, ...missing].sort();
+  return src.replace(re, `import { ${merged.join(", ")} } from "${module}"`);
+}
+
 const schemaSrc = readFileSync(schemaFile, "utf8");
 if (!schemaSrc.includes(`export const ${name} = pgTable`)) {
-  writeFileSync(schemaFile, `${schemaSrc.trimEnd()}\n${tableBlock}`);
+  let next = `${schemaSrc.trimEnd()}\n${tableBlock}`;
+  // The generated table uses these pg-core helpers — import any the base lacks.
+  next = ensureNamedImports(next, "drizzle-orm/pg-core", [
+    "pgTable",
+    "text",
+    "timestamp",
+    "uuid",
+  ]);
+  writeFileSync(schemaFile, next);
 }
 
 // Insert the sidebar entry above the anchor (reuses PackageIcon — change later).
@@ -597,7 +627,10 @@ const ANCHOR = "// create-resource:anchor";
 const sidebarSrc = readFileSync(sidebarFile, "utf8");
 if (sidebarSrc.includes(ANCHOR) && !sidebarSrc.includes(`href: "/${name}"`)) {
   const item = `      { label: "${TitlePlural}", href: "/${name}", icon: PackageIcon },\n      ${ANCHOR}`;
-  writeFileSync(sidebarFile, sidebarSrc.replace(ANCHOR, item.trimStart()));
+  let next = sidebarSrc.replace(ANCHOR, item.trimStart());
+  // Ensure the icon is imported (a clean base only imports HouseIcon/GearIcon).
+  next = ensureNamedImports(next, "@phosphor-icons/react", ["PackageIcon"]);
+  writeFileSync(sidebarFile, next);
 }
 
 // Format the generated + touched files so the output is lint-clean immediately.
