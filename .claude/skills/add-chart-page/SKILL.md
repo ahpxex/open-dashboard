@@ -59,6 +59,11 @@ queries).
   `chartColor(i)` for categorical palettes.
 - Charts are generic over the row type — pass typed data; keys (`xKey`,
   `series`/`bars` keys, `nameKey`/`valueKey`) are checked against the data.
+- **Aggregating a resource? Respect its `pageSize` cap.** A `create-resource`
+  resource validates `pageSize` at `max(100)`, so a "fetch every row" loader that
+  passes `pageSize: 200` throws a Zod error at runtime (not at typecheck). Either
+  raise the cap in that resource's `listParamsSchema`, or aggregate server-side
+  and expose a dedicated stats server fn — don't request more than the schema allows.
 
 ## Verify
 
