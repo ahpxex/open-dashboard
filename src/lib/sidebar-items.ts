@@ -5,7 +5,6 @@ import {
   GearIcon,
   HouseIcon,
   PackageIcon,
-  WarningIcon,
 } from "@phosphor-icons/react";
 
 export interface MenuItem {
@@ -27,16 +26,6 @@ export const mainMenuItems: MenuGroup[] = [
       { label: "Orders", href: "/orders", icon: PackageIcon },
       { label: "Posts", href: "/posts", icon: FileTextIcon },
       // create-resource:anchor (keep this line — generated resources are inserted above)
-    ],
-  },
-  {
-    groupLabel: "Error Pages",
-    items: [
-      { label: "Unauthorized", href: "/errors/401", icon: WarningIcon },
-      { label: "Forbidden", href: "/errors/403", icon: WarningIcon },
-      { label: "Not Found", href: "/errors/404", icon: WarningIcon },
-      { label: "Server Error", href: "/errors/500", icon: WarningIcon },
-      { label: "Maintenance", href: "/errors/503", icon: WarningIcon },
     ],
   },
 ];
