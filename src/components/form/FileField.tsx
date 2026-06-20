@@ -13,6 +13,7 @@ import {
   type StorageAdapter,
   type StoredFile,
 } from "@/infra/storage/storage";
+import { toastError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 function formatSize(bytes: number): string {
@@ -32,6 +33,13 @@ interface FileUploadProps {
   /** Stored files; controlled. */
   value: StoredFile[];
   onChange: (files: StoredFile[]) => void;
+  /**
+   * Called when a `storage.upload(...)` rejects (network/validation/auth failure
+   * on a real backend, or a failed `FileReader` read). Defaults to a destructive
+   * toast; pass a handler (e.g. to surface the error through `FormError`) to
+   * override. The upload contract is: the adapter rejects, the control reports.
+   */
+  onError?: (error: unknown) => void;
   /** Storage backend; defaults to zero-config browser data-URL storage. */
   storage?: StorageAdapter;
   /** Allow selecting / holding more than one file. */
@@ -57,6 +65,7 @@ interface FileUploadProps {
 export function FileUpload({
   value,
   onChange,
+  onError,
   storage = dataUrlStorage,
   multiple = false,
   accept,
@@ -77,6 +86,12 @@ export function FileUpload({
     try {
       const stored = await Promise.all(picked.map((f) => storage.upload(f)));
       onChange(multiple ? [...value, ...stored] : stored.slice(0, 1));
+    } catch (err) {
+      // A real storage adapter (S3 / disk / server fn) rejects on a network,
+      // validation, or auth failure; the default browser adapter rejects on a
+      // failed FileReader read. Surface it instead of silently swallowing.
+      if (onError) onError(err);
+      else toastError(err, "Upload failed");
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -217,6 +232,8 @@ interface FileFieldProps {
   description?: ReactNode;
   required?: boolean;
   storage?: StorageAdapter;
+  /** Override the default error toast on a failed upload (see `FileUpload`). */
+  onError?: (error: unknown) => void;
   multiple?: boolean;
   accept?: string;
   hint?: ReactNode;
@@ -235,6 +252,7 @@ export function FileField({
   description,
   required,
   storage,
+  onError,
   multiple,
   accept,
   hint,
@@ -257,6 +275,7 @@ export function FileField({
             field.handleChange(files);
             field.handleBlur();
           }}
+          onError={onError}
           storage={storage}
           multiple={multiple}
           accept={accept}

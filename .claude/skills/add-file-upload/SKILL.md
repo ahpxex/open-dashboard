@@ -42,6 +42,12 @@ validation + the bucket/disk write, secrets server-side) and returns the URL,
 then pass it as `storage={bucketStorage}`. The control never changes — mirrors
 how a resource swaps `drizzleRepository` for `restRepository` in `server.ts`.
 
+**Error contract**: the adapter *rejects*, the control *reports*. On a failed
+`upload(...)` (network / validation / auth on a real backend, or a failed read)
+`FileUpload` clears the busy spinner and shows a destructive toast by default;
+pass `onError={(err) => …}` (on `FileUpload` or `FileField`) to route it through
+`FormError` or your own handling instead.
+
 ## Foundation it assumes
 
 `@/components/form` (`FormField`), `@/components/ui/card` (showcase page),
@@ -54,6 +60,8 @@ theme tokens — all provided by the base (see the `scaffold-dashboard` skill).
   through the `StorageAdapter` interface. Theme tokens only.
 - Real uploads go through a server fn (`requireUser()` + validation); the
   adapter's browser half stays the same.
+- A rejected upload is surfaced (toast by default, or `onError`) — never
+  silently swallowed.
 
 ## Verify
 

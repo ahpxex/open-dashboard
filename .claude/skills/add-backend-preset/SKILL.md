@@ -112,12 +112,20 @@ export const externalApiAuthProvider: AuthProvider = {
     return { user: { id: String(u.id), email: u.email, name: u.name } };
   },
   // Proxy login/logout to the upstream API (set the session cookie on success).
-  handler: async (request) =>
-    fetch(`${process.env.AUTH_API_URL}/auth${new URL(request.url).pathname.replace("/api/auth", "")}`, {
-      method: request.method,
-      headers: request.headers,
-      body: request.body,
-    }),
+  handler: async (request) => {
+    const hasBody = request.method !== "GET" && request.method !== "HEAD";
+    return fetch(
+      `${process.env.AUTH_API_URL}/auth${new URL(request.url).pathname.replace("/api/auth", "")}`,
+      {
+        method: request.method,
+        headers: request.headers,
+        // Buffer the body before forwarding. Passing the raw `request.body`
+        // ReadableStream to Node/undici's fetch requires `duplex: "half"` and
+        // still can't be retried; reading it to a string sidesteps both.
+        body: hasBody ? await request.text() : undefined,
+      },
+    );
+  },
 };
 
 export const authProvider: AuthProvider = externalApiAuthProvider;
