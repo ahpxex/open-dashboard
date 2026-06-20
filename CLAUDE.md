@@ -53,7 +53,7 @@ The DB table itself goes in `src/db/schema.ts` alongside `products`.
 
 ### Sidebar
 
-Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. The sidebar is organised by **business scenario** — each group (`taoracle`, `E-commerce`, `Helpdesk`, `Sales (CRM)`, `People (HR)`, `Fleet (IoT)`, `Typing platform`) is a complete back-office; the single `Gallery` group at the bottom is the entry to the UI-shape palette. New resources add an item to `mainMenuItems` (`// create-resource:anchor` marks where the generator inserts entries); new scenario groups go above the `// gallery:anchor` line.
+Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. The sidebar has two halves: **business cases** — two complete back-offices, `E-commerce` (products / orders / customers / refunds + the home dashboard + blog) and `Sales (CRM)` (forecast / pipeline / contacts / companies), that compose the shapes into real verticals — and the **Skills Gallery** — one entry per skill, grouped by category (a `Skills Gallery · Overview` entry, then `Skills · Forms`, `Skills · Lists & tables`, `Skills · Rich views`, `Skills · Detail & pages`, `Skills · Display & feedback`), each linking to that skill's demo under `/gallery/*`. New resources add an item to `mainMenuItems` (`// create-resource:anchor` marks where the generator inserts entries, in the first business group); new business-case groups go above the `// gallery:anchor` line; the `Skills · …` groups stay last.
 
 ### Platform layers (compose from these — don't reinvent)
 
@@ -62,7 +62,7 @@ Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottom
 - **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced via `useTableSearch`, debounced search, opt-in bulk select) and `CardList` + `useResourceList` (the gallery counterpart, same plumbing).
 - **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
 
-### Gallery (UI-shape palette)
+### Skills Gallery (one demo per skill)
 
 `src/routes/_app/gallery/*` is a **palette of admin UI shapes** — forms, lists,
 pages, and rich views (kanban, tree, calendar, timeline, …) an agent picks from
@@ -71,32 +71,30 @@ with small components under `src/components/data`, `src/components/feedback`, or
 `src/components/form/ComboboxField.tsx`), runs **zero-config** on local/static
 data, and teaches the *shape*, not a persisted resource (no Drizzle tables).
 
-They are surfaced through a **single sidebar entry** — `Gallery · Overview`
-(`/gallery`, `gallery/index.tsx`): a tabbed catalogue (Forms / Lists & tables /
-Rich views / Detail & pages / Display & feedback) whose cards link to each demo.
-The individual demo routes stay under `gallery/*` but are **not** listed in the
-sidebar. Full menu: `docs/gallery-catalogue.md`. On port, edit the `SHAPES` array
-in `gallery/index.tsx` to keep what you need and run the **`trim-gallery`** skill
+They are surfaced as the **Skills Gallery** in the sidebar — a `Skills Gallery ·
+Overview` entry (`/gallery`, `gallery/index.tsx`: a tabbed catalogue of every
+shape) plus one entry per skill, grouped into `Skills · Forms` / `Skills · Lists &
+tables` / `Skills · Rich views` / `Skills · Detail & pages` / `Skills · Display &
+feedback`. The Skills Gallery *is* the proof that each skill produces working UI:
+every entry renders that skill's own demo. Full menu: `docs/gallery-catalogue.md`.
+On port, edit the `SHAPES` array in `gallery/index.tsx` + the `Skills · …` groups
+in `sidebar-items.ts` to keep what you need, and run the **`trim-gallery`** skill
 to delete the rest.
 
-### Business scenarios (composed examples)
+### Business cases (composed examples)
 
-Below the demo resources, the sidebar carries **complete business back-offices**
+Above the Skills Gallery, the sidebar carries **two complete business back-offices**
 that *compose* the gallery shapes into believable products — the richest reference
-for "how do I assemble a real vertical". Each scenario's data is a **memory-backed
-resource** (`features/<name>/` with `memoryRepository` + `demo-data.ts` — real
+for "how do I assemble a real vertical". `products` and `orders` are real Drizzle
+resources (they fall back to in-memory with no `DATABASE_URL`); the rest are
+**memory-backed** (`features/<name>/` with `memoryRepository` + `demo-data.ts` —
 zero-config CRUD, no Drizzle table):
 
-- **taoracle** (`/`, `/taoracle/*`) — SaaS overview (charts) · Tasks (kanban) · Users (CRUD table) · Affiliate codes (inline-edit) · Blog (reuses `posts`).
-- **E-commerce** (`/products`, `/orders`, `/customers`, `/refunds`) — folds the `products`/`orders` demos in, adds Customers (CRUD + detail) and Refunds.
-- **Helpdesk** (`/helpdesk/*`) — one `tickets` resource as Inbox (master-detail) + Triage board (kanban) + Overview (SLA stats + timeline).
+- **E-commerce** (`/`, `/products`, `/orders`, `/customers`, `/refunds`, `/posts`) — Store overview (charts) · Products (CRUD table + detail) · Orders (master-detail) · Customers (CRUD + detail) · Refunds · Blog (card list, `posts`). These double as the live demos for the foundational archetype skills (`add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-chart-page`).
 - **Sales (CRM)** (`/crm/*`) — deals pipeline (kanban) · contacts (table) · companies (card list + detail) · forecast (charts).
-- **People (HR)** (`/hr/*`) — org chart (tree) · directory (list) · time off (calendar) · onboarding (wizard).
-- **Fleet (IoT)** (`/fleet/*`) — devices (virtualized table) · alerts (timeline) · overview (charts) · settings (control page).
-- **Typing platform** (`/typing/*`) — articles (table) · students (card list) · scores (leaderboard + inline-edit) · classes (table).
 
-Each scenario is independently removable (delete `features/<name>/` + its routes +
-its sidebar group).
+Each business case is independently removable (delete `features/<name>/` + its
+routes + its sidebar group; the `strip-demo` skill documents it).
 
 ### Agent layer
 

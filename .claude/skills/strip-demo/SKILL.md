@@ -31,12 +31,13 @@ bun run create-resource <name>                       # add your first resource
 The manual breakdown below documents what the command does (and is the fallback
 if you've already customised these files and want to strip by hand).
 
-> **Heads-up — the template now ships business scenarios too.** `bun run
-> strip-demo` only removes the original three demos (`products`/`orders`/`posts`)
-> and the sample dashboard. The **scenario groups** in the sidebar (`taoracle`,
-> `Helpdesk`, `Sales (CRM)`, `People (HR)`, `Fleet (IoT)`, `Typing platform`) and
-> the **gallery** are also demo content — see "Business scenarios" below to remove
-> the ones you don't want, and run the `trim-gallery` skill for the gallery.
+> **Heads-up — the template ships business scenarios + a Skills Gallery too.**
+> `bun run strip-demo` removes the core demos (`products`/`orders`/`posts`) and
+> the sample dashboard. The **business-case groups** in the sidebar (the
+> `Sales (CRM)` vertical and the `Customers`/`Refunds` extras under `E-commerce`)
+> and the **Skills Gallery** are also demo content — see "Business scenarios"
+> below to remove the ones you don't want, and run the `trim-gallery` skill for
+> the Skills Gallery.
 
 ## What is demo vs. platform
 
@@ -53,17 +54,12 @@ pages, the generator, and `src/db/schema.ts`'s better-auth tables.
 
 ## Business scenarios (also demo — remove what you don't need)
 
-The sidebar's scenario groups are self-contained, memory-backed showcases. Each is
-removed the same way (no DB migration needed — they have no Drizzle tables):
+Two business cases ship as self-contained, memory-backed showcases (no Drizzle
+tables, so no DB migration needed to remove them):
 
 - Delete the scenario's `features/` folders and routes:
-  - **taoracle** → `features/{tasks,users,redemption-codes}/`, `routes/_app/taoracle/`, and restore `routes/_app/index.tsx` (the taoracle overview) to your real dashboard.
-  - **E-commerce** (new parts) → `features/{customers,refunds}/`, `routes/_app/{customers,customers_.$id,refunds}.tsx`.
-  - **Helpdesk** → `features/tickets/`, `routes/_app/helpdesk/`.
+  - **E-commerce extras** → `features/{customers,refunds}/`, `routes/_app/{customers,customers_.$id,refunds}.tsx` (the `products`/`orders`/`posts` core + the store-overview `index.tsx` are removed by `bun run strip-demo` itself).
   - **Sales (CRM)** → `features/{deals,contacts,companies}/`, `routes/_app/crm/`.
-  - **People (HR)** → `features/{employees,leave-requests}/`, `routes/_app/hr/`.
-  - **Fleet (IoT)** → `features/{devices,alerts}/`, `routes/_app/fleet/`.
-  - **Typing platform** → `features/{articles,classes,students,scores}/`, `routes/_app/typing/`.
 - Delete that scenario's group from `src/lib/sidebar-items.ts`.
 - Run the four checks. Nothing else imports a scenario, so removal is clean.
 

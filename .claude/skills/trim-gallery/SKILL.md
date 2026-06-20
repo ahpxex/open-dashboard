@@ -6,10 +6,11 @@ description: Remove the UI-shape gallery (all of it, or all but the variants you
 # Trim the gallery
 
 `src/routes/_app/gallery/*` ships a broad **palette** of admin UI shapes so an
-agent can compose from them. They are surfaced through a **single sidebar entry**
-(`Gallery · Overview`, `gallery/index.tsx`) — a tabbed catalogue whose cards link
-to each demo. A real product keeps a few shapes and deletes the rest. Every
-variant is self-contained, so trimming is mostly deletion.
+agent can compose from them. They are surfaced as the **Skills Gallery** in the
+sidebar — an `Overview` entry (`gallery/index.tsx`, a tabbed catalogue) plus
+per-category groups (`Skills · Forms`, `Skills · Lists & tables`, …), one entry
+per skill. A real product keeps a few shapes and deletes the rest. Every variant
+is self-contained, so trimming is mostly deletion.
 
 ## What the gallery is made of
 
@@ -19,9 +20,10 @@ variant is self-contained, so trimming is mostly deletion.
   `gallery/index.tsx`.
 - **Gallery-only components**: `src/components/data/*`, `src/components/feedback/*`,
   and `src/components/form/ComboboxField.tsx` (used only by gallery demos).
-- **Sidebar**: the single `Gallery` group in `src/lib/sidebar-items.ts` (just below
-  the `// gallery:anchor` line). The **business-scenario groups above** that line
-  (`taoracle`, `E-commerce`, `Helpdesk`, …) are NOT the gallery — leave them.
+- **Sidebar**: the `Skills Gallery` group plus every `Skills · …` group in
+  `src/lib/sidebar-items.ts` (below the `// gallery:anchor` line). The
+  **business-case groups above** that line (`E-commerce`, `Sales (CRM)`) are NOT
+  the gallery — leave them.
 - **Docs**: `docs/gallery-catalogue.md`.
 
 Nothing else in the app imports these. Platform code (`src/infra`, the form
@@ -34,8 +36,8 @@ rm -rf src/routes/_app/gallery src/components/data src/components/feedback
 rm -f  src/components/form/ComboboxField.tsx docs/gallery-catalogue.md
 ```
 
-Then in `src/lib/sidebar-items.ts` delete the `Gallery` group (the one whose
-`groupLabel` is `"Gallery"`) and the `// gallery:anchor` line. Verify:
+Then in `src/lib/sidebar-items.ts` delete the `Skills Gallery` group and every
+`Skills · …` group (everything below the `// gallery:anchor` line). Verify:
 
 ```
 bun run typecheck && bun run check && bun run test && bun run build
@@ -51,15 +53,16 @@ trimming is two steps:
 2. Delete the matching route file under `src/routes/_app/gallery/` for each removed
    shape (and any `components/data` / `components/feedback` component only that
    shape used).
-3. Keep the single `Gallery` sidebar entry as long as ≥1 shape remains; if you
-   remove every shape, delete `gallery/index.tsx`, the `Gallery` sidebar group, and
-   follow "Remove the whole gallery" above.
+3. Also remove that shape's sidebar item from its `Skills · …` group in
+   `src/lib/sidebar-items.ts`. Keep the `Skills Gallery` Overview entry as long as
+   ≥1 shape remains; if you remove every shape, delete `gallery/index.tsx` and all
+   Skills groups, then follow "Remove the whole gallery" above.
 4. Verify with the four commands above; `bun run dev` and open `/gallery` to click
    each kept card.
 
 ## Invariants
 
-- Trimming the gallery never touches the business-scenario groups or platform
+- Trimming the gallery never touches the business-case groups or platform
   layers — each gallery variant is already independent.
 - After trimming, the app boots zero-config (in-memory backend) and all four
   checks pass on the slimmed-down shell.

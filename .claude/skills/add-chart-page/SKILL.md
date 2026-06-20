@@ -22,14 +22,14 @@ Then in the copied file:
 1. Set the route — `createFileRoute("/_app/")` for the home dashboard, or
    `createFileRoute("/_app/<name>")` for a named page (and rename the component).
 2. Swap the demo data sources: the template `loader` + `useQuery` pull from the
-   `users` / `tasks` / `redemption-codes` resources and the `useMemo` derives
+   `products` / `orders` resources and the `useMemo` derives
    stats + chart series from those rows. Point them at your resources and
    recompute the `StatCard[]`, the bar/pie data, and the activity list.
 3. Adjust the chart mix to your data (see Invariants for bar-vs-line and the
    chart-type guidance). Fix the heading, quick-action links, and the welcome
    line (`Route.useRouteContext().user`).
 
-The template wires the real `users` / `tasks` / `redemption-codes` resources. A
+The template wires the real `products` / `orders` resources. A
 chart page over your own data needs matching `features/<name>/` resources whose
 list queries it can read — `add-crud-resource` / `create-resource` scaffolds them.
 

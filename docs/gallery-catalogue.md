@@ -1,16 +1,16 @@
 # Gallery catalogue
 
-> The **gallery of admin UI shapes**: a rich palette an agent picks from and
-> **trims on port** (`trim-gallery`). All variants below are **built, green
+> The **Skills Gallery**: a rich palette an agent picks from and **trims on port**
+> (`trim-gallery`). All variants below are **built, green
 > (typecheck/check/test/build), and zero-config runnable** — each is a
-> self-contained route under `src/routes/_app/gallery/`, surfaced through the
-> single tabbed **`Gallery · Overview`** (`/gallery`, `gallery/index.tsx`) and
-> **not** listed individually in the sidebar, with an `add-*` skill in
+> self-contained route under `src/routes/_app/gallery/`, surfaced both by the
+> tabbed **`Skills Gallery · Overview`** (`/gallery`, `gallery/index.tsx`) and by a
+> per-skill sidebar entry under the `Skills · …` groups, with an `add-*` skill in
 > `.claude/skills/`.
 >
-> The sidebar's **business-scenario groups** (taoracle, E-commerce, Helpdesk,
-> Sales/CRM, People/HR, Fleet/IoT, Typing) **compose** these shapes into real
-> back-offices — see the "Business scenarios" section of `CLAUDE.md`.
+> The sidebar's two **business-case groups** (E-commerce, Sales/CRM) **compose**
+> these shapes into real back-offices — see the "Business cases" section of
+> `CLAUDE.md`.
 
 Legend: ✅ built & verified · `skill` = the skill that adds/edits it.
 
@@ -63,7 +63,7 @@ on. Each is documented once and demonstrated by ≥1 variant below.
 | **Infinite / load-more list** | `infinite` option, cursor/offset, no pager | ✅ | `.../gallery/list-infinite.tsx` | `add-infinite-list` |
 | **Lazy list** | `lazy` — defer fetch until visible/expanded | ✅ | `.../gallery/list-lazy.tsx` | `add-list-view` (option) |
 | **Virtualized table** | windowed rows for large datasets (10k+) | ✅ | `.../gallery/table-virtual.tsx` | `add-virtual-table` |
-| **Kanban board** | columns + drag between, status = column | ✅ | `features/tasks` + `.../gallery/kanban.tsx` | `add-kanban` |
+| **Kanban board** | columns + drag between, status = column | ✅ | `.../gallery/kanban.tsx` (self-contained) | `add-kanban` |
 | **Tree / nested list** | expandable hierarchy, lazy children | ✅ | `.../gallery/tree.tsx` | `add-tree-view` |
 | **Calendar view** | records placed on a month/week grid | ✅ | `.../gallery/calendar.tsx` | `add-calendar` |
 | **Timeline / activity feed** | reverse-chron events, grouped by day | ✅ | `.../gallery/timeline.tsx` | `add-timeline` |
@@ -147,9 +147,9 @@ on. Each is documented once and demonstrated by ≥1 variant below.
 
 Because every variant is self-contained, the **`trim-gallery`** skill keeps the
 shapes the brief needs and deletes the rest: edit the `SHAPES` array in
-`gallery/index.tsx` and delete the matching route files. The sidebar has a
-single `Gallery · Overview` entry (no per-variant rows to prune). Remove the
-whole group to drop the gallery entirely.
+`gallery/index.tsx`, delete the matching route files, and remove each dropped
+shape's entry from its `Skills · …` group in `sidebar-items.ts`. Remove the
+`Skills Gallery` + all `Skills · …` groups to drop the gallery entirely.
 
 ## Suggested build order (each phase ends zero-config-green + signed off)
 
@@ -167,9 +167,9 @@ whole group to drop the gallery entirely.
 
 - **Scope**: build everything, including the heavy views (kanban / tree / calendar
   / timeline). Done.
-- **Sidebar**: a single `Gallery · Overview` entry — a tabbed catalogue
-  (`gallery/index.tsx`, the `SHAPES` array); individual demos are reached from it,
-  not listed separately.
+- **Sidebar**: the **Skills Gallery** — a `Skills Gallery · Overview` entry (the
+  tabbed catalogue, `gallery/index.tsx` / the `SHAPES` array) plus one entry per
+  skill under the `Skills · …` groups.
 - **Routes**: all gallery demos nested under `src/routes/_app/gallery/*` (+ a few
   components under `src/components/{data,feedback}` and `ComboboxField.tsx`), so the
   whole gallery trims as a unit via `trim-gallery`.

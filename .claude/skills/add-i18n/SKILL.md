@@ -32,7 +32,7 @@ Then:
 
 ```tsx
 const { t, locale, setLocale } = useTranslation();
-<p>{t("greeting.welcome", { app: "Taoracle" })}</p>
+<p>{t("greeting.welcome", { app: "Acme" })}</p>
 ```
 
 (Only open a template if you need to customise it — copying it costs no context.)
