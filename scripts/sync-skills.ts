@@ -67,6 +67,15 @@ const MANIFEST: Record<string, string[]> = {
     "src/routes/_app/gallery/feedback.tsx",
     "src/components/feedback/StateView.tsx",
   ],
+  "add-rbac": [
+    "src/routes/_app/gallery/rbac.tsx",
+    "src/lib/rbac.ts",
+    "src/components/RoleGate.tsx",
+  ],
+  "add-auth-method": [
+    "src/routes/_app/gallery/auth-methods.tsx",
+    "src/components/auth/SocialButtons.tsx",
+  ],
   // Form variants (the dialog lives in the CRUD vertical; these are the page forms)
   "add-form": [
     "src/routes/_app/gallery/form-page.tsx",

@@ -11,6 +11,7 @@ import {
   CursorClickIcon,
   DownloadSimpleIcon,
   FileTextIcon,
+  FingerprintIcon,
   FunnelIcon,
   HourglassIcon,
   InfinityIcon,
@@ -20,6 +21,7 @@ import {
   NotePencilIcon,
   PencilSimpleIcon,
   RowsIcon,
+  ShieldCheckIcon,
   SlidersHorizontalIcon,
   StepsIcon,
   TableIcon,
@@ -260,6 +262,20 @@ const SHAPES: Shape[] = [
     description: "Two-column content + aside that collapses responsively.",
     href: "/gallery/split-layout",
     icon: ColumnsIcon,
+  },
+  {
+    category: "pages",
+    title: "Roles & permissions",
+    description: "Role-gated toolbar, row actions, and a RoleGate panel.",
+    href: "/gallery/rbac",
+    icon: ShieldCheckIcon,
+  },
+  {
+    category: "pages",
+    title: "Sign-in methods",
+    description: "Social OAuth buttons and a passwordless magic-link form.",
+    href: "/gallery/auth-methods",
+    icon: FingerprintIcon,
   },
   // Display & feedback
   {
