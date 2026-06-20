@@ -59,10 +59,14 @@ rm(join(base, "src/lib/dashboard"));
 for (const s of ["strip-demo.ts", "sync-skills.ts", "build-base.ts"]) {
   rm(join(base, "scripts", s));
 }
+// 2d. template-maintenance docs that don't apply to a scaffolded product.
+for (const d of ["PORTING.md", "ROADMAP.md", "PATTERNS.md"]) {
+  rm(join(base, d));
+}
 
 // 3. Apply the clean overrides (better-auth-only schema, minimal nav + welcome,
 //    dev-account seed, and product-oriented CLAUDE.md + README — the repo's docs
-//    are substrate-maintenance guidance that doesn't apply to a scaffolded product).
+//    are substrate guidance that doesn't apply to a scaffolded product).
 const overrides: [string, string][] = [
   ["schema.ts", "src/db/schema.ts"],
   ["sidebar-items.ts", "src/lib/sidebar-items.ts"],
