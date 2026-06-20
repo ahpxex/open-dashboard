@@ -1,129 +1,121 @@
 # CLAUDE.md
 
-An **AI-native, agent-composable** back-office / dashboard substrate (a "中台" template) — not a clone-and-hand-edit boilerplate. The repo is the **source of truth for 40+ skills** (`.claude/skills/`), each a copy-ready admin UI *shape* (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …), and a **Skills Gallery** that renders every skill's own demo — kept byte-for-byte in sync with the repo's working code via `sync-skills`, so a skill never ships code the repo hasn't typechecked/built/tested. An agent forks this repo and **composes** a real product from the skills. It is also a real full-stack app (TanStack Start + Drizzle + better-auth) that runs **zero-config** on in-memory adapters (add `DATABASE_URL` for Postgres). This file orients AI agents working in the repo.
+## What this is — read first
 
-## Tech Stack
+An **AI-native, skill-driven** back-office substrate (a "中台" template). The repo
+is **not a product**. It is the **source of truth for 40+ skills**
+(`.claude/skills/`) — each a copy-ready admin UI *shape* (CRUD, detail,
+master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) — plus a **Skills
+Gallery** that renders every skill's own demo. The demos, the resources, and the
+two business cases all exist for one reason: **to back a skill and be the live
+proof it produces working UI.** A skill's distributed `templates/` are *generated
+from* this repo's working source and kept byte-for-byte in sync, so a skill never
+ships code the repo hasn't typechecked, built, and tested.
 
-- **Framework**: [TanStack Start](https://tanstack.com/start) — full-stack React on Vite + Nitro. Server logic runs in **server functions** created with `createServerFn` from `@tanstack/react-start`.
-- **Routing**: [TanStack Router](https://tanstack.com/router) — file-based, type-safe routes under `src/routes/`. Route tree is generated into `src/routeTree.gen.ts` (do not edit by hand).
-- **Server state**: [TanStack Query](https://tanstack.com/query) — caching + mutations, SSR-integrated via `@tanstack/react-router-ssr-query`.
-- **Tables**: [TanStack Table](https://tanstack.com/table) — headless, wrapped by the generic `DataTable` in `src/infra/table`.
-- **Database**: [PostgreSQL](https://www.postgresql.org/) via [Drizzle ORM](https://orm.drizzle.team/) (`drizzle-orm/node-postgres`). Schema in `src/db/schema.ts`; client in `src/db/index.ts`. Migrations in `./drizzle`, managed with `drizzle-kit`. **The database is the default backend, not a hard requirement**: with no `DATABASE_URL` the app boots on in-memory adapters (`bun dev`, no Docker). See `docs/backends.md`.
-- **Auth**: [better-auth](https://www.better-auth.com/) — email + password, real hashed passwords; sessions in Postgres via the Drizzle adapter when `DATABASE_URL` is set, else better-auth's in-memory adapter (zero-config dev). The app reaches auth through the **`AuthProvider` seam** (`src/lib/auth-provider.ts`) + the browser client (`src/lib/auth-client.ts`), so the auth backend is a swappable preset; better-auth config (cookies via the `tanstackStartCookies` plugin — must be the LAST plugin) is in `src/lib/auth.ts`. See `docs/backends.md`.
-- **UI**: [shadcn/ui](https://ui.shadcn.com/) components built on **[`@base-ui/react`](https://base-ui.com/) (NOT Radix)**, in `src/components/ui`. **Tailwind CSS v4**, **Phosphor icons** (`@phosphor-icons/react`), light/dark via `next-themes`.
-- **Charts**: Recharts. **Client state**: Zustand. **Validation**: Zod (v4).
-- **Tooling**: **Bun** (package manager + script runtime), **Biome** (lint + format), **Vitest**. **TypeScript** strict, path alias `@/*` → `./src/*`.
+**Two modes of work — know which you're in:**
 
-Build pipeline: Vite (`vite.config.ts`) wires `tanstackStart()`, `nitroV2Plugin({ preset: "node-server" })`, `tailwindcss()`, `viteReact()`, and tsconfig paths. Dev server runs on port 3000.
+- **Authoring the substrate — the default here.** You're adding or fixing a
+  *skill*, the platform layer, a gallery demo, or a business case *inside this
+  repo*. Whatever you produce must (a) be real, working repo code — so it's
+  verified and visible in the gallery — and (b) stay in lockstep with its
+  distributed skill via `sync-skills`. **If you are editing files in this repo,
+  you are almost certainly in this mode.** → see *Authoring a skill* below.
+- **Porting out.** A *different* agent forks this repo into a real product and
+  *composes* it from the skills (rebrand → pick a backend → add resources → add
+  shapes → strip the rest). That workflow lives in `PORTING.md` and the
+  `rebrand` / `strip-demo` / `trim-gallery` / `add-backend-preset` skills — not
+  here. Don't confuse "build a product" (port-out) with "maintain the substrate"
+  (the work in this repo).
 
-## Architecture
+## The skill model — the most important convention
 
-### Routing & auth guard
+- **The repo source is the single source of truth.** Each skill's bundled
+  `.claude/skills/<name>/templates/*` is a **generated copy** of a repo file,
+  produced by `scripts/sync-skills.ts` from its `MANIFEST` (a
+  `Record<skillName, repoSourcePath[]>`). Templates are a flat folder of copied
+  files (basename only).
+- **NEVER hand-edit anything under `templates/`.** Edit the repo source, then run
+  `bun run sync-skills` to regenerate. `bun run sync-skills --check` is the
+  **drift guard** — byte-for-byte compare, exits non-zero on any drift or missing
+  source. Run it before finishing.
+- **The gallery demo *is* the skill's test.** A skill's source is a real,
+  self-contained, zero-config route/component the repo typechecks / builds /
+  tests / renders in the Skills Gallery — so "does this skill produce working UI"
+  is continuously proven. A skill whose demo doesn't render is not done.
+- **`scripts/build-base.ts`** assembles the clean base bundle the
+  `scaffold-dashboard` skill ships (the platform shell, with demo / scenario /
+  gallery code stripped and the `clean/` overrides applied). Re-run
+  `bun run build-base` after changing the platform layer or the `clean/` files.
 
-File-based routes live in `src/routes/`:
+## Authoring a skill
 
-- `__root.tsx` — HTML shell, head, providers (`next-themes`).
-- `_app.tsx` — **auth-guarded layout**. Its `beforeLoad` calls `getSession()` (a server fn) and `throw redirect({ to: "/login" })` if there's no session; otherwise it returns `{ user }` into the route context. All protected pages live under `src/routes/_app/`.
-- `_auth.tsx` — public auth layout; its `beforeLoad` redirects already-authenticated users to `/`. Children: `login`, `register`.
-- `api/auth/$.ts` — mounts the auth provider's HTTP handler (`authProvider.handler`) for `GET`/`POST`.
+Most skills are **shape skills** — a UI shape demoed by a gallery route. To add one:
 
-Auth is reached through a seam so the backend is swappable (`docs/backends.md`):
-- `src/lib/auth-provider.ts` — the **`AuthProvider`** interface (`getSession(headers)` / `handler(request)`) + the active `authProvider` (better-auth by default). Server-only.
-- `getSession()` (`src/lib/auth-server.ts`) — a `createServerFn` wrapping `authProvider.getSession`; use in route `beforeLoad`/loaders. Returns the normalized `{ user }` session.
-- `requireUser()` (`src/lib/require-user.ts`) — asserts an authenticated user via `authProvider`; **call at the top of every mutating/protected server-fn handler**. Throws `"UNAUTHORIZED"` if there is no session.
-- The browser auth client (`signIn`, `signUp`, `signOut`, `useSession`) is in `src/lib/auth-client.ts` (the browser half of the seam).
+1. **Build the demo in the repo**, self-contained and zero-config (local/static
+   data, no Drizzle table): a route under `src/routes/_app/gallery/<demo>.tsx`,
+   plus any small component under `src/components/…`, `src/infra/…`, or
+   `src/lib/…`. Make it real, working code — that is both the proof and the test.
+2. **Surface it in the Skills Gallery:** add a `SHAPES` entry in
+   `src/routes/_app/gallery/index.tsx` (title / route / category / icon) and a
+   sidebar item in the matching `Skills · …` group in `src/lib/sidebar-items.ts`.
+3. **Register it for distribution:** add a `MANIFEST` entry in
+   `scripts/sync-skills.ts` mapping the skill name → its repo source path(s).
+4. **Write `.claude/skills/<name>/SKILL.md`** — slim: frontmatter (`name`, a
+   one-line `description`) + a short body in the house format: **Add it** (`cp`
+   the template into a route/component, then rewire) · **Foundation it assumes** ·
+   **Invariants** · **Verify**. Keep it terse — the template carries the code.
+5. **Generate + verify:** `bun run sync-skills`, then
+   `bun run typecheck && bun run check && bun run test && bun run build && bun run sync-skills --check`.
 
-### The resource pattern (most important convention)
+**Archetype / operation skills** (`add-crud-resource`, `add-backend-preset`,
+`rebrand`, `strip-demo`, `trim-gallery`, `scaffold-dashboard`) ship **no
+`templates/`**: they point at a canonical in-repo example (e.g. `features/products`,
+`src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). Same slim
+SKILL.md format; no `MANIFEST` entry.
 
-Every data resource is a self-contained folder under `src/features/<name>/`, paired with a route under `src/routes/_app/<name>.tsx` that renders the generic `DataTable`. **`products` is the canonical example — copy it.** A resource folder contains:
-
-| File | Responsibility |
-| --- | --- |
-| `schema.ts` | Zod schemas + inferred types: input, update, and list-params (page/pageSize/search/sort/filter). |
-| `server.ts` | `createServerFn` handlers (`list*`, `get*`, `create*`, `update*`, `delete*`). Each calls `requireUser()`, validates input via `.validator(...)`, and delegates to a **`Repository` adapter** — `drizzleRepository(table, { searchColumns, sortColumns, filterColumns, defaultSort, updatedAtKey })` for Postgres (imported from `@/infra/data/drizzle-repository`), or `restRepository`/`graphqlRepository` for external APIs. Returns `{ rows, total }`. |
-| `queries.ts` | TanStack Query glue: a `*Keys` factory, a `*ListQuery(params)` returning `queryOptions`, and `useCreate*`/`useUpdate*`/`useDelete*` mutation hooks that invalidate the resource's keys on success. |
-| `columns.tsx` | `ColumnDef[]` factory taking a context (`onEdit`/`onDelete`). Uses shared cells from `@/infra/ui` (`StatusChip`, `ActionMenu`). |
-| `config.ts` | Filter definitions (`FilterConfig[]`) and table config (search placeholder, page-size options, empty message). |
-
-The DB table itself goes in `src/db/schema.ts` alongside `products`.
-
-### The generic `DataTable`
-
-`src/infra/table/DataTable.tsx` is a **fully-controlled, server-driven** table. The page component owns all state (page, pageSize, search, status filter, sorting) — typically via `useState` plus a TanStack Query `useQuery` — and passes it down. The table uses `manualPagination`/`manualSorting`/`manualFiltering` (server does the work). It composes `TableToolbar` (search + filters + refresh) and `TablePaginationControls`. See `src/routes/_app/products.tsx` for the reference wiring, including the create/edit dialog.
-
-### Sidebar
-
-Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. The sidebar has two halves: **business cases** — two complete back-offices, `E-commerce` (products / orders / customers / refunds + the home dashboard + blog) and `Sales (CRM)` (forecast / pipeline / contacts / companies), that compose the shapes into real verticals — and the **Skills Gallery** — one entry per skill, grouped by category (a `Skills Gallery · Overview` entry, then `Skills · Forms`, `Skills · Lists & tables`, `Skills · Rich views`, `Skills · Detail & pages`, `Skills · Display & feedback`), each linking to that skill's demo under `/gallery/*`. New resources add an item to `mainMenuItems` (`// create-resource:anchor` marks where the generator inserts entries, in the first business group); new business-case groups go above the `// gallery:anchor` line; the `Skills · …` groups stay last.
-
-### Platform layers (compose from these — don't reinvent)
-
-- **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
-- **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` / `memoryRepository` (zero-config default) adapters over `ListParams`/`ListResult`. A resource binds an adapter in `server.ts`, typically via `hasDatabase` (`@/lib/backend`). See `docs/data-adapters.md` and `docs/backends.md`.
-- **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced via `useTableSearch`, debounced search, opt-in bulk select) and `CardList` + `useResourceList` (the gallery counterpart, same plumbing).
-- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
-
-### Skills Gallery (one demo per skill)
-
-`src/routes/_app/gallery/*` is a **palette of admin UI shapes** — forms, lists,
-pages, and rich views (kanban, tree, calendar, timeline, …) an agent picks from
-when composing a real app. Each variant is a **self-contained route** (some pair
-with small components under `src/components/data`, `src/components/feedback`, or
-`src/components/form/ComboboxField.tsx`), runs **zero-config** on local/static
-data, and teaches the *shape*, not a persisted resource (no Drizzle tables).
-
-They are surfaced as the **Skills Gallery** in the sidebar — a `Skills Gallery ·
-Overview` entry (`/gallery`, `gallery/index.tsx`: a tabbed catalogue of every
-shape) plus one entry per skill, grouped into `Skills · Forms` / `Skills · Lists &
-tables` / `Skills · Rich views` / `Skills · Detail & pages` / `Skills · Display &
-feedback`. The Skills Gallery *is* the proof that each skill produces working UI:
-every entry renders that skill's own demo. Full menu: `docs/gallery-catalogue.md`.
-On port, edit the `SHAPES` array in `gallery/index.tsx` + the `Skills · …` groups
-in `sidebar-items.ts` to keep what you need, and run the **`trim-gallery`** skill
-to delete the rest.
-
-### Business cases (composed examples)
-
-Above the Skills Gallery, the sidebar carries **two complete business back-offices**
-that *compose* the gallery shapes into believable products — the richest reference
-for "how do I assemble a real vertical". `products` and `orders` are real Drizzle
-resources (they fall back to in-memory with no `DATABASE_URL`); the rest are
-**memory-backed** (`features/<name>/` with `memoryRepository` + `demo-data.ts` —
-zero-config CRUD, no Drizzle table):
-
-- **E-commerce** (`/`, `/products`, `/orders`, `/customers`, `/refunds`, `/posts`) — Store overview (charts) · Products (CRUD table + detail) · Orders (master-detail) · Customers (CRUD + detail) · Refunds · Blog (card list, `posts`). These double as the live demos for the foundational archetype skills (`add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-chart-page`).
-- **Sales (CRM)** (`/crm/*`) — deals pipeline (kanban) · contacts (table) · companies (card list + detail) · forecast (charts).
-
-Each business case is independently removable (delete `features/<name>/` + its
-routes + its sidebar group; the `strip-demo` skill documents it).
-
-### Agent layer
-
-`.claude/skills/*` — **40+ skills**, the heart of the template. They split into **archetype/operation** skills (`add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-chart-page`, `add-form`, `add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`, `scaffold-dashboard`) and **shape** skills — one per Skills-Gallery demo (`add-kanban`, `add-calendar`, `add-tree-view`, `add-timeline`, `add-wizard-form`, `add-inline-edit`, `add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`, `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …). Each bundles copy-ready `templates/` **generated from the repo's own working source** by `scripts/sync-skills.ts` (one-way; `bun run sync-skills --check` is the drift guard), so a distributed skill always carries code the repo has typechecked/built/tested — the Skills Gallery is the live proof. `scripts/build-base.ts` assembles the clean base bundle that `scaffold-dashboard` ships. Plus `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
-
-## How to add a resource
-
-1. Add a Drizzle table to `src/db/schema.ts`; run `bun run db:generate` then `bun run db:migrate`.
-2. Create `src/features/<name>/` with `schema.ts`, `server.ts`, `queries.ts`, `columns.tsx`, `config.ts` (copy from `products`).
-3. Add a route `src/routes/_app/<name>.tsx` that wires `DataTable` (copy from `src/routes/_app/products.tsx`).
-4. Add a sidebar entry in `src/lib/sidebar-items.ts`.
-
-Or run `bun run create-resource <name>` to scaffold all of the above — it also appends the Drizzle table to `src/db/schema.ts`; after generating, customise the fields and run `bun run db:generate && bun run db:migrate`. Full walkthrough: `docs/resources.md`.
+**Platform changes** (UI primitives, form system, charts, the `Repository` /
+`AuthProvider` seams, the shell): edit the repo source, run the full suite, then
+`bun run build-base` (and `bun run sync-skills` if a `MANIFEST` source changed).
 
 ## Conventions (prescriptive)
+
+### Substrate & skill rules (the meta layer)
+
+**ALWAYS**
+- Treat the repo source as truth. After changing any file a skill's `MANIFEST`
+  maps, run `bun run sync-skills`, and finish with `bun run sync-skills --check`
+  green.
+- Keep every gallery demo **self-contained + zero-config** (local/static data, no
+  Drizzle table) so it backs its skill and renders standalone.
+- Add/remove a shape as a unit: the gallery route + its `SHAPES` entry + its
+  `Skills · …` sidebar item move together.
+- Re-run `bun run build-base` after a platform-layer or `clean/` change so the
+  `scaffold-dashboard` bundle stays current.
+
+**NEVER**
+- Hand-edit `.claude/skills/*/templates/*` — edit the repo source and re-sync.
+- Ship a skill whose demo doesn't render/verify, or whose `MANIFEST` source is
+  missing (`--check` will fail the build).
+
+### App-code rules (the feature / demo code you write)
 
 **ALWAYS**
 - Call `requireUser()` first in every protected server-fn handler, and validate
   input with Zod via `.validator(...)`. Data crosses the client↔server boundary
   only through `createServerFn` — there is no manual fetch/REST layer.
 - Keep list/sort/filter/page state in the URL (`validateSearch` +
-  `useTableSearch`/`useResourceList`), not local `useState`. (Multi-row *selection*
-  is the one exception — it's transient local state.)
+  `useTableSearch`/`useResourceList`), not local `useState`. (Multi-row
+  *selection* and dialog open-state are the exceptions — transient local state.)
+- Wrap a `DataTable`/`CardList` page in a **full-height flex column**
+  (`<div className="flex h-full flex-col gap-6">`, header as `shrink-0`) so the
+  pagination bar pins to the page bottom (the shell sizes each page to the
+  viewport). The generator emits this.
 - Report mutations with a toast and route destructive actions through
   `useConfirm()`. Invalidate the resource's query keys on success.
 - Use a `Repository` adapter in `server.ts` (never inline Drizzle/`fetch` in a
   resource). Import `drizzleRepository` from `@/infra/data/drizzle-repository`.
-- Compose from the platform layers above (form system, charts, `DataTable`/
-  `CardList`, archetypes). Find the closest pattern in `PATTERNS.md` and copy it.
+- Compose from the platform layers (form system, charts, `DataTable`/`CardList`,
+  archetypes). Find the closest pattern in `PATTERNS.md` and copy it.
 - Use the `@/*` alias. Before finishing, run `bun run typecheck && bun run check
   && bun run test` (and `bun run build` for infra changes).
 
@@ -136,17 +128,115 @@ Or run `bun run create-resource <name>` to scaffold all of the above — it also
   `@base-ui/react`, **not** Radix.
 - Sort by raw user input — use the adapter's `sortColumns` whitelist.
 
+## The platform — what skills are carved from
+
+The rest of this file documents the substrate the skills compose. It is accurate
+reference, but secondary to the skill model above.
+
+### Tech stack
+
+- **Framework**: [TanStack Start](https://tanstack.com/start) — full-stack React on Vite + Nitro. Server logic runs in **server functions** created with `createServerFn` from `@tanstack/react-start`.
+- **Routing**: [TanStack Router](https://tanstack.com/router) — file-based, type-safe routes under `src/routes/`. Route tree is generated into `src/routeTree.gen.ts` (do not edit by hand; `typecheck` runs `tsr generate` first).
+- **Server state**: [TanStack Query](https://tanstack.com/query) — caching + mutations, SSR-integrated via `@tanstack/react-router-ssr-query`.
+- **Tables**: [TanStack Table](https://tanstack.com/table) — headless, wrapped by the generic `DataTable` in `src/infra/table`.
+- **Database**: [PostgreSQL](https://www.postgresql.org/) via [Drizzle ORM](https://orm.drizzle.team/) (`drizzle-orm/node-postgres`). Schema in `src/db/schema.ts`; client in `src/db/index.ts`. Migrations in `./drizzle` via `drizzle-kit`. **The database is the default backend, not a hard requirement**: with no `DATABASE_URL` the app boots on in-memory adapters (`bun dev`, no Docker). See `docs/backends.md`.
+- **Auth**: [better-auth](https://www.better-auth.com/) — email + password, real hashed passwords; sessions in Postgres via the Drizzle adapter when `DATABASE_URL` is set, else better-auth's in-memory adapter. Reached through the **`AuthProvider` seam** (`src/lib/auth-provider.ts`) + the browser client (`src/lib/auth-client.ts`), so the auth backend is a swappable preset; better-auth config (cookies via the `tanstackStartCookies` plugin — must be the **LAST** plugin) is in `src/lib/auth.ts`. See `docs/backends.md`.
+- **UI**: [shadcn/ui](https://ui.shadcn.com/) on **[`@base-ui/react`](https://base-ui.com/) (NOT Radix)**, in `src/components/ui`. **Tailwind CSS v4**, **Phosphor icons** (`@phosphor-icons/react`), light/dark via `next-themes`.
+- **Charts**: Recharts. **Client state**: Zustand. **Validation**: Zod (v4).
+- **Tooling**: **Bun** (package manager + script runtime), **Biome** (lint + format), **Vitest**. **TypeScript** strict, path alias `@/*` → `./src/*`. Dev server on port 3000.
+
+### Routing & auth guard
+
+- `__root.tsx` — HTML shell, head, providers (`next-themes`).
+- `_app.tsx` — **auth-guarded layout** (the `DashboardShell`). Its `beforeLoad` calls `getSession()` and `throw redirect({ to: "/login" })` if there's no session; otherwise returns `{ user }` into the route context. All protected pages live under `src/routes/_app/`.
+- `_auth.tsx` — public auth layout; redirects already-authenticated users to `/`. Children: `login`, `register`.
+- `api/auth/$.ts` — mounts the auth provider's HTTP handler for `GET`/`POST`.
+
+Auth is reached through a seam so the backend is swappable (`docs/backends.md`):
+- `src/lib/auth-provider.ts` — the **`AuthProvider`** interface (`getSession(headers)` / `handler(request)`) + the active `authProvider` (better-auth by default). Server-only.
+- `getSession()` (`src/lib/auth-server.ts`) — a `createServerFn` wrapping `authProvider.getSession`; use in route `beforeLoad`/loaders.
+- `requireUser()` (`src/lib/require-user.ts`) — asserts an authenticated user; **call at the top of every mutating/protected server-fn handler**. Throws `"UNAUTHORIZED"`.
+- The browser auth client (`signIn`, `signUp`, `signOut`, `useSession`) is in `src/lib/auth-client.ts`.
+
+### The resource pattern
+
+Every data resource is a self-contained folder under `src/features/<name>/`, paired
+with a route under `src/routes/_app/<name>.tsx` that renders the generic `DataTable`.
+**`products` is the canonical example — copy it.** A resource folder contains:
+
+| File | Responsibility |
+| --- | --- |
+| `schema.ts` | Zod schemas + inferred types: input, update, and list-params (page/pageSize/search/sort/filter). |
+| `server.ts` | `createServerFn` handlers (`list*`, `get*`, `create*`, `update*`, `delete*`). Each calls `requireUser()`, validates via `.validator(...)`, and delegates to a **`Repository` adapter** — `drizzleRepository(table, { searchColumns, sortColumns, filterColumns, defaultSort, updatedAtKey })` for Postgres, or `restRepository`/`graphqlRepository`/`memoryRepository`. Returns `{ rows, total }`. |
+| `queries.ts` | TanStack Query glue: a `*Keys` factory, a `*ListQuery(params)` returning `queryOptions`, and `useCreate*`/`useUpdate*`/`useDelete*` hooks that invalidate the resource's keys on success. |
+| `columns.tsx` | `ColumnDef[]` factory taking a context (`onEdit`/`onDelete`). Uses shared cells from `@/infra/ui` (`StatusChip`, `ActionMenu`). |
+| `config.ts` | Filter definitions (`FilterConfig[]`) + table config (search placeholder, page-size options, empty message). |
+
+A Drizzle-backed resource adds its table to `src/db/schema.ts`. A resource can also
+be **memory-backed** (`memoryRepository` + a `demo-data.ts`, no table) — that is how
+the business-case scenarios run zero-config.
+
+### The generic `DataTable`
+
+`src/infra/table/DataTable.tsx` is a **fully-controlled, server-driven** table. The
+page owns list state — page/pageSize/search/filter/sort synced to the URL via
+`useTableSearch` (only multi-row selection + dialog state are local `useState`) — and
+passes it down. The table uses `manualPagination`/`manualSorting`/`manualFiltering`,
+and composes `TableToolbar` + `TablePaginationControls`. The body flexes to fill and
+scrolls internally, so the pagination bar pins to the bottom **when the page wraps it
+in a full-height flex column** (see the App-code rules). Reference wiring (incl. the
+create/edit dialog): `src/routes/_app/products.tsx`. `CardList` (`src/infra/list`) is
+the card-grid counterpart with the same plumbing (`useResourceList`).
+
+### Platform layers (compose from these — don't reinvent)
+
+- **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
+- **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` / `memoryRepository` (zero-config default) over `ListParams`/`ListResult`. A resource binds an adapter in `server.ts`, typically via `hasDatabase` (`@/lib/backend`). See `docs/data-adapters.md`.
+- **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced, debounced search, opt-in bulk select) and `CardList` + `useResourceList`.
+- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
+
+### Sidebar, Skills Gallery & business cases
+
+Navigation is `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced
+via `appConfig.nav`. Two halves:
+
+- **Business cases** — two complete back-offices that *compose* the shapes into real
+  verticals: **E-commerce** (`/`, products / orders / customers / refunds + store
+  dashboard + blog) and **Sales (CRM)** (`/crm/*`: forecast / pipeline kanban /
+  contacts / companies). `products` and `orders` are real Drizzle resources (with an
+  in-memory fallback); the rest are memory-backed. These double as the live demos for
+  the foundational archetype skills (`add-crud-resource`, `add-detail-page`,
+  `add-master-detail`, `add-card-list`, `add-chart-page`). Each is independently
+  removable (`strip-demo`).
+- **Skills Gallery** — one entry per skill, grouped (`Skills Gallery · Overview`, then
+  `Skills · Forms` / `Lists & tables` / `Rich views` / `Detail & pages` / `Display &
+  feedback`), each linking to that skill's demo under `/gallery/*`. The Overview
+  (`gallery/index.tsx`) is a tabbed catalogue of every shape (incl. variants not
+  pinned to the sidebar). Trim with `trim-gallery`. Full menu: `docs/gallery-catalogue.md`.
+
+Anchors: generated CRUD resources insert at `// create-resource:anchor` (in the first
+business group); new business-case groups go above `// gallery:anchor`; the `Skills · …`
+groups stay last.
+
+## How to add a resource (an app task)
+
+1. Add a Drizzle table to `src/db/schema.ts`; run `bun run db:generate` then `bun run db:migrate`. *(Or skip the table and bind `memoryRepository` for a zero-config, in-memory resource.)*
+2. Create `src/features/<name>/` (`schema`, `server`, `queries`, `columns`, `config`) — copy from `products`.
+3. Add a route `src/routes/_app/<name>.tsx` wiring `DataTable` — copy from `products.tsx`.
+4. Add a sidebar entry in `src/lib/sidebar-items.ts`.
+
+Or run `bun run create-resource <name>` to scaffold all of the above (it also appends
+the Drizzle table); then customise the fields and migrate. Walkthrough: `docs/resources.md`.
+
 ## Commands
 
-- `bun run dev` — dev server (port 3000).
-- `bun run db:up` / `bun run db:down` — start/stop local Postgres (Docker Compose).
-- `bun run db:generate` / `db:migrate` / `db:push` / `db:studio` — Drizzle migrations & Studio.
-- `bun run db:seed` — seed demo products + a dev account.
-- `bun run build` / `bun run start` — production build / run Nitro server.
-- `bun run check` / `lint` / `format` — Biome.
-- `bun run typecheck` — `tsc --noEmit`. `bun run test` — Vitest.
+- `bun run dev` — dev server (port 3000; zero-config if no `DATABASE_URL`).
+- `bun run build` / `start` — production build / run Nitro server.
+- `bun run check` / `lint` / `format` — Biome. `bun run typecheck` — `tsr generate` + `tsc --noEmit`. `bun run test` — Vitest.
+- `bun run sync-skills` / `sync-skills --check` — regenerate skill `templates/` from repo source / verify in sync (the drift guard).
+- `bun run build-base` — reassemble the `scaffold-dashboard` base bundle.
+- `bun run create-resource <name>` — scaffold a CRUD resource. `bun run strip-demo` — remove the demo resources.
+- `bun run db:up` / `db:down` / `db:generate` / `db:migrate` / `db:push` / `db:studio` / `db:seed` — Postgres (Docker) + Drizzle.
 
-See `README.md` for full setup, `docs/resources.md` for the resource guide,
-`docs/data-adapters.md` for data adapters, `docs/backends.md` for swapping the
-data/auth backend (presets), `PATTERNS.md` for the shape catalogue, and
-`PORTING.md` to start a real product.
+See `README.md` for setup, `PATTERNS.md` for the shape catalogue, `PORTING.md` to start
+a real product, and `docs/{resources,data-adapters,backends,gallery-catalogue}.md`.
