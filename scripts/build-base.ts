@@ -61,14 +61,15 @@ for (const s of ["strip-demo.ts", "sync-skills.ts", "build-base.ts"]) {
 }
 
 // 3. Apply the clean overrides (better-auth-only schema, minimal nav + welcome,
-//    dev-account seed, and a product-oriented CLAUDE.md — the repo's CLAUDE.md is
-//    substrate-maintenance guidance that doesn't apply to a scaffolded product).
+//    dev-account seed, and product-oriented CLAUDE.md + README — the repo's docs
+//    are substrate-maintenance guidance that doesn't apply to a scaffolded product).
 const overrides: [string, string][] = [
   ["schema.ts", "src/db/schema.ts"],
   ["sidebar-items.ts", "src/lib/sidebar-items.ts"],
   ["index.tsx", "src/routes/_app/index.tsx"],
   ["seed.ts", "scripts/seed.ts"],
   ["CLAUDE.md", "CLAUDE.md"],
+  ["README.md", "README.md"],
 ];
 for (const [from, to] of overrides) {
   copyFileSync(join(clean, from), join(base, to));
