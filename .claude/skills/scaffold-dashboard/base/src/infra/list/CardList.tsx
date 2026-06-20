@@ -78,7 +78,7 @@ export function CardList<T>({
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-start gap-3">
         <div className="flex-1">
           <TableToolbar
@@ -98,23 +98,25 @@ export function CardList<T>({
         ) : null}
       </div>
 
-      {isLoading && data.length === 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: skeletonCount }, (_, i) => (
-            <Skeleton key={`skeleton-${i}`} className="h-40 w-full" />
-          ))}
-        </div>
-      ) : data.length === 0 ? (
-        <div className="grid h-40 place-items-center border border-border text-sm text-muted-foreground">
-          {emptyMessage}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((item) => (
-            <div key={getKey(item)}>{renderCard(item)}</div>
-          ))}
-        </div>
-      )}
+      <div className="min-h-0 flex-1 overflow-auto">
+        {isLoading && data.length === 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: skeletonCount }, (_, i) => (
+              <Skeleton key={`skeleton-${i}`} className="h-40 w-full" />
+            ))}
+          </div>
+        ) : data.length === 0 ? (
+          <div className="grid h-40 place-items-center border border-border text-sm text-muted-foreground">
+            {emptyMessage}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {data.map((item) => (
+              <div key={getKey(item)}>{renderCard(item)}</div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <TablePaginationControls
         page={page}

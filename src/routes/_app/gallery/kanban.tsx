@@ -80,8 +80,8 @@ function KanbanDemo() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Kanban board
         </h1>
@@ -92,7 +92,7 @@ function KanbanDemo() {
         </p>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2">
         {COLUMNS.map((column) => {
           const cards = board[column.id];
           const isOver = overColumn === column.id;
@@ -100,7 +100,7 @@ function KanbanDemo() {
             <div
               key={column.id}
               className={cn(
-                "flex min-w-72 flex-1 flex-col gap-3 rounded-none border border-border bg-muted/30 p-3 transition-colors",
+                "flex min-h-0 min-w-72 flex-1 flex-col gap-3 rounded-none border border-border bg-muted/30 p-3 transition-colors",
                 isOver && "border-primary bg-primary/5",
               )}
               onDragOver={(e) => {
@@ -114,14 +114,14 @@ function KanbanDemo() {
               }}
               onDrop={() => handleDrop(column.id)}
             >
-              <div className="flex items-center justify-between px-1">
+              <div className="flex shrink-0 items-center justify-between px-1">
                 <h2 className="font-heading text-sm font-medium">
                   {column.title}
                 </h2>
                 <Badge variant="outline">{cards.length}</Badge>
               </div>
 
-              <div className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto">
+              <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
                 {cards.length === 0 ? (
                   <p className="px-1 py-6 text-center text-xs text-muted-foreground">
                     Drop cards here

@@ -394,8 +394,8 @@ function __TITLE__Page() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           __TITLE__
         </h1>
@@ -603,7 +603,12 @@ function ensureNamedImports(
     .map((s) => s.trim())
     .filter(Boolean);
   const have = new Set(
-    existing.map((s) => s.replace(/^type\s+/, "").split(/\s+as\s+/)[0].trim()),
+    existing.map((s) =>
+      s
+        .replace(/^type\s+/, "")
+        .split(/\s+as\s+/)[0]
+        .trim(),
+    ),
   );
   const missing = names.filter((n) => !have.has(n));
   if (!missing.length) return src;
