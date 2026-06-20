@@ -49,12 +49,37 @@ const appRoutes = join(base, "src/routes/_app");
 for (const entry of readdirSync(appRoutes)) {
   if (!keepRoutes.has(entry)) rm(join(appRoutes, entry));
 }
-// 2b. all feature resources, and the gallery-only components.
-rm(join(base, "src/features"));
-rm(join(base, "src/components/data"));
-rm(join(base, "src/components/feedback"));
-rm(join(base, "src/components/form/ComboboxField.tsx"));
-rm(join(base, "src/lib/dashboard"));
+// 2b. all feature resources, plus every gallery-only module. Each of these is
+// the canonical source of an `add-*` skill (its `MANIFEST` entry in
+// sync-skills.ts) and is reachable only from a gallery route — so it belongs
+// with its skill, not in the clean base. The matching skill `cp`s it back in
+// when a product opts into that shape. Keep this list in lockstep with the
+// gallery-only modules; a straggler ships as dead code in the scaffold.
+const galleryOnlyModules = [
+  // feature resources (the business cases + their sample dashboard data)
+  "src/features",
+  // display & feedback building blocks
+  "src/components/data",
+  "src/components/feedback",
+  // form-field shapes
+  "src/components/form/ComboboxField.tsx", // add-field-combobox
+  "src/components/form/FileField.tsx", // add-file-upload
+  "src/infra/storage", // add-file-upload (storage seam)
+  // table / list shapes
+  "src/infra/table/ColumnControls.tsx", // add-table-columns
+  "src/infra/table/SavedViews.tsx", // add-saved-views
+  "src/infra/data/csv.ts", // add-export-import
+  // cross-cutting feature components
+  "src/components/GlobalSearch.tsx", // add-global-search
+  "src/components/NotificationCenter.tsx", // add-notifications / add-realtime
+  "src/components/RoleGate.tsx", // add-rbac
+  "src/lib/rbac.ts", // add-rbac
+  "src/lib/i18n.tsx", // add-i18n
+  "src/lib/use-live-query.ts", // add-realtime
+  "src/components/billing", // add-billing
+  "src/components/auth", // add-auth-method (SocialButtons)
+];
+for (const mod of galleryOnlyModules) rm(join(base, mod));
 // 2c. dev-only scripts that don't belong in a distributed base.
 for (const s of ["strip-demo.ts", "sync-skills.ts", "build-base.ts"]) {
   rm(join(base, "scripts", s));

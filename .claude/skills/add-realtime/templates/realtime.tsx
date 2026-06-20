@@ -9,7 +9,6 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { StatCard } from "@/components/charts";
-import { relativeTime } from "@/components/NotificationCenter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,23 @@ import { useLiveQuery } from "@/lib/use-live-query";
 export const Route = createFileRoute("/_app/gallery/realtime")({
   component: RealtimeDemo,
 });
+
+/** Compact "Ns ago" label for the live feed. Inlined so this demo is
+ * self-contained (no dependency on the add-notifications shape). */
+function relativeTime(from: number, now: number = Date.now()): string {
+  const seconds = Math.max(0, Math.round((now - from) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(from).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 /**
  * Demo data source. A real app's `queryFn` calls a server fn; here we mutate a

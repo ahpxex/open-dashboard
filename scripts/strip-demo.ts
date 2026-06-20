@@ -7,7 +7,7 @@
  *   bun run strip-demo
  *
  * What it does (mirrors `.claude/skills/strip-demo`):
- *   - deletes the demo feature folders + their routes + the fake chart data
+ *   - deletes the demo feature folders (products, orders, posts) + their routes
  *   - removes the `products`/`orders` tables from `src/db/schema.ts`
  *     (keeps the better-auth tables) and prunes now-unused imports
  *   - removes the demo sidebar entries (keeps Dashboard + the create-resource anchor)
@@ -33,7 +33,7 @@ function info(msg: string) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  1. Delete demo feature folders, routes, and fake dashboard data            */
+/*  1. Delete demo feature folders and their routes                            */
 /* -------------------------------------------------------------------------- */
 
 const deletions = [
@@ -45,7 +45,6 @@ const deletions = [
   "src/routes/_app/orders.tsx",
   "src/routes/_app/orders.$id.tsx",
   "src/routes/_app/posts.tsx",
-  "src/lib/dashboard",
 ];
 
 for (const rel of deletions) {
