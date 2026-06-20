@@ -33,6 +33,33 @@ Tailwind v4 theme; the form system (TanStack Form + zod); chart components; the
 is set); better-auth behind the `AuthProvider` seam; toast + `useConfirm`; and the
 auth-guarded routing shell. Rebrand via `src/config/app.ts` (or the `rebrand` skill).
 
+## Compose a coherent product (not a demo dump)
+
+You are building a real back-office for a specific domain — not showcasing the
+catalogue. The fastest way to ship something that reads as a patchwork demo is to
+copy a pile of gallery shapes into the nav. Don't. Instead:
+
+- **The home is an overview, never the placeholder.** Replace
+  `src/routes/_app/index.tsx` (the "clean shell" welcome) with a real overview via
+  `add-chart-page` — KPIs + charts derived from your actual resources. Shipping the
+  scaffold welcome as the product home is the #1 tell of a demo.
+- **Nav = real product sections only:** Overview, your resources, Settings. The
+  `gallery/*` routes are a **palette to learn shapes from — never product pages**;
+  do not list them in `src/lib/sidebar-items.ts`. When you've composed the app,
+  run `trim-gallery` to delete the gallery entirely.
+- **Pick the archetype that fits each resource's shape**, don't add one of each:
+  flat list → CRUD table (`add-crud-resource`); rich record → + `add-detail-page`;
+  an inbox you triage → `add-master-detail`; a staged pipeline → `add-kanban`;
+  people/visual items → `add-card-list`; date-bound items → `add-calendar`;
+  metrics → `add-chart-page`.
+- **Every nav item gets a distinct, meaningful Phosphor icon** — never repeat one
+  icon (e.g. `SquaresFourIcon`) down the list.
+- **Use product language.** Labels and page copy name the domain, not the
+  mechanism: "Feed", not "Feed (REST)"; "Manage your invoices", not "Generated
+  resource — customise the schema".
+- **Seed believable data** — real names, dates, statuses, amounts. Three rows of
+  `Alpha/Beta/Gamma` read as a demo; a dozen realistic records read as a product.
+
 ## Add screens (compose from the shape skills)
 
 Each shape skill copies a bundled template into the new project:
