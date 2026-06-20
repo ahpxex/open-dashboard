@@ -67,6 +67,15 @@ const MANIFEST: Record<string, string[]> = {
     "src/routes/_app/gallery/feedback.tsx",
     "src/components/feedback/StateView.tsx",
   ],
+  "add-file-upload": [
+    "src/routes/_app/gallery/file-upload.tsx",
+    "src/components/form/FileField.tsx",
+    "src/infra/storage/storage.ts",
+  ],
+  "add-related-records": [
+    "src/routes/_app/gallery/related-records.tsx",
+    "src/components/data/RelatedList.tsx",
+  ],
   "add-rbac": [
     "src/routes/_app/gallery/rbac.tsx",
     "src/lib/rbac.ts",

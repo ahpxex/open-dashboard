@@ -23,10 +23,12 @@ import {
   RowsIcon,
   ShieldCheckIcon,
   SlidersHorizontalIcon,
+  StackIcon,
   StepsIcon,
   TableIcon,
   TrayIcon,
   TreeStructureIcon,
+  UploadSimpleIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -125,6 +127,14 @@ const SHAPES: Shape[] = [
     description: "Combobox with a filterable, async-friendly option list.",
     href: "/gallery/form-combobox",
     icon: MagnifyingGlassIcon,
+  },
+  {
+    category: "forms",
+    title: "File upload",
+    description:
+      "Drag-and-drop upload with thumbnails and a swappable storage seam.",
+    href: "/gallery/file-upload",
+    icon: UploadSimpleIcon,
   },
   // Lists & tables
   {
@@ -234,6 +244,13 @@ const SHAPES: Shape[] = [
     description: "A parent record with child lists scoped to its id.",
     href: "/gallery/detail-related",
     icon: FileTextIcon,
+  },
+  {
+    category: "pages",
+    title: "Related records",
+    description: "One record with its one-to-many children inline as tables.",
+    href: "/gallery/related-records",
+    icon: StackIcon,
   },
   {
     category: "pages",
