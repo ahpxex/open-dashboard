@@ -131,11 +131,11 @@ export function GlobalSearch({
                 key={`${group.label}:${result.id}`}
                 value={`${group.label} ${result.title} ${result.id}`}
                 onSelect={() => onSelect(result.href)}
-                className="flex cursor-pointer select-none flex-col items-start gap-0.5 px-2 py-2 text-sm outline-none transition-colors data-[selected=true]:bg-accent"
+                className="group flex cursor-pointer select-none flex-col items-start gap-0.5 px-2 py-2 text-sm text-foreground outline-none transition-colors data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
               >
-                <span className="text-foreground">{result.title}</span>
+                <span className="font-medium">{result.title}</span>
                 {result.subtitle && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground group-data-[selected=true]:text-accent-foreground/80">
                     {result.subtitle}
                   </span>
                 )}
