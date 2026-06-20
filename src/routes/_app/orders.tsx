@@ -63,8 +63,8 @@ function OrdersPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <h1 className="text-xl font-semibold">Orders</h1>
         <p className="text-sm text-muted-foreground">
           The Master-detail archetype — select a row to open its detail in a
@@ -72,8 +72,8 @@ function OrdersPage() {
         </p>
       </div>
 
-      <div className="flex flex-1 items-start gap-4">
-        <div className="min-w-0 flex-1">
+      <div className="flex min-h-0 flex-1 items-stretch gap-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <DataTable
             columns={columns}
             data={rows}

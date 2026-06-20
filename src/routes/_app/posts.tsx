@@ -74,8 +74,8 @@ function PostsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <h1 className="text-xl font-semibold">Posts</h1>
         <p className="text-sm text-muted-foreground">
           The Card/grid list archetype, backed by a public REST API
