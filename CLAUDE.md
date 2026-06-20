@@ -3,14 +3,17 @@
 ## What this is — read first
 
 An **AI-native, skill-driven** back-office substrate (a "中台" template). The repo
-is **not a product**. It is the **source of truth for 40+ skills**
-(`.claude/skills/`) — each a copy-ready admin UI *shape* (CRUD, detail,
-master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) — plus a **Skills
-Gallery** that renders every skill's own demo. The demos, the resources, and the
-two business cases all exist for one reason: **to back a skill and be the live
-proof it produces working UI.** A skill's distributed `templates/` are *generated
-from* this repo's working source and kept byte-for-byte in sync, so a skill never
-ships code the repo hasn't typechecked, built, and tested.
+is **not a product**. It is the **source of truth for the skill catalogue**
+(`.claude/skills/`): one **`add-component`** skill — a catalogue + retriever over
+**35+ copy-ready admin UI shapes** (CRUD, detail, master-detail, kanban, calendar,
+wizard, billing, RBAC, i18n, …), each a reference doc + a generated template — plus
+a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
+`add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`,
+`add-tests`). A **Skills Gallery** renders every shape's own demo. The demos, the
+resources, and the two business cases all exist for one reason: **to back a shape
+and be the live proof it produces working UI.** A shape's distributed `templates/`
+are *generated from* this repo's working source and kept byte-for-byte in sync, so
+the catalogue never ships code the repo hasn't typechecked, built, and tested.
 
 **Two modes of work — know which you're in:**
 
@@ -29,11 +32,15 @@ ships code the repo hasn't typechecked, built, and tested.
 
 ## The skill model — the most important convention
 
-- **The repo source is the single source of truth.** Each skill's bundled
-  `.claude/skills/<name>/templates/*` is a **generated copy** of a repo file,
-  produced by `scripts/sync-skills.ts` from its `MANIFEST` (a
-  `Record<skillName, repoSourcePath[]>`). Templates are a flat folder of copied
-  files (basename only).
+- **The repo source is the single source of truth.** A skill's bundled
+  `templates/*` is a **generated copy** of a repo file, produced by
+  `scripts/sync-skills.ts`. The UI shapes all live in **one** skill —
+  `add-component` — whose templates are the flattened union of
+  `COMPONENT_SOURCES` (a `Record<componentName, repoSourcePath[]>` in
+  `sync-skills.ts`); each shape also has a hand-authored
+  `add-component/references/<name>.md` (the "Add it / Foundation / Invariants /
+  Verify" prose — **not** generated). Templates are a flat folder, basename only
+  (a basename-collision guard fails the sync if two sources clash).
 - **NEVER hand-edit anything under `templates/`.** Edit the repo source, then run
   `bun run sync-skills` to regenerate. `bun run sync-skills --check` is the
   **drift guard** — byte-for-byte compare, exits non-zero on any drift or missing
@@ -47,9 +54,10 @@ ships code the repo hasn't typechecked, built, and tested.
   gallery code stripped and the `clean/` overrides applied). Re-run
   `bun run build-base` after changing the platform layer or the `clean/` files.
 
-## Authoring a skill
+## Authoring a shape (a component in `add-component`)
 
-Most skills are **shape skills** — a UI shape demoed by a gallery route. To add one:
+Adding a new UI shape means adding a **component** to the `add-component`
+catalogue — not a new top-level skill. To add one:
 
 1. **Build the demo in the repo**, self-contained and zero-config (local/static
    data, no Drizzle table): a route under `src/routes/_app/gallery/<demo>.tsx`,
@@ -58,20 +66,23 @@ Most skills are **shape skills** — a UI shape demoed by a gallery route. To ad
 2. **Surface it in the Skills Gallery:** add a `SHAPES` entry in
    `src/routes/_app/gallery/index.tsx` (title / route / category / icon) and a
    sidebar item in the matching `Skills · …` group in `src/lib/sidebar-items.ts`.
-3. **Register it for distribution:** add a `MANIFEST` entry in
-   `scripts/sync-skills.ts` mapping the skill name → its repo source path(s).
-4. **Write `.claude/skills/<name>/SKILL.md`** — slim: frontmatter (`name`, a
-   one-line `description`) + a short body in the house format: **Add it** (`cp`
-   the template into a route/component, then rewire) · **Foundation it assumes** ·
-   **Invariants** · **Verify**. Keep it terse — the template carries the code.
+3. **Register it for distribution:** add a `COMPONENT_SOURCES` entry in
+   `scripts/sync-skills.ts` (in the matching category group) mapping the component
+   name → its repo source path(s).
+4. **Write `.claude/skills/add-component/references/<name>.md`** — the house
+   format: **Add it** (`cp .claude/skills/add-component/templates/<file>` into a
+   route/component, then rewire) · **Foundation it assumes** · **Invariants** ·
+   **Verify**. Then add a one-line catalogue entry under the right category in
+   `add-component/SKILL.md`. Keep it terse — the template carries the code.
 5. **Generate + verify:** `bun run sync-skills`, then
    `bun run typecheck && bun run check && bun run test && bun run build && bun run sync-skills --check`.
 
-**Archetype / operation skills** (`add-crud-resource`, `add-backend-preset`,
-`rebrand`, `strip-demo`, `trim-gallery`, `scaffold-dashboard`) ship **no
+**Operation skills** (`scaffold-dashboard`, `add-crud-resource`, `add-data-source`,
+`add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`) ship **no
 `templates/`**: they point at a canonical in-repo example (e.g. `features/products`,
-`src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). Same slim
-SKILL.md format; no `MANIFEST` entry.
+`src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). They stay
+their own slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). `add-tests` is the
+one operation skill that still ships a `templates/` exemplar.
 
 **Platform changes** (UI primitives, form system, charts, the `Repository` /
 `AuthProvider` seams, the shell): edit the repo source, run the full suite, then
@@ -82,20 +93,21 @@ SKILL.md format; no `MANIFEST` entry.
 ### Substrate & skill rules (the meta layer)
 
 **ALWAYS**
-- Treat the repo source as truth. After changing any file a skill's `MANIFEST`
-  maps, run `bun run sync-skills`, and finish with `bun run sync-skills --check`
-  green.
+- Treat the repo source as truth. After changing any file a component's
+  `COMPONENT_SOURCES` maps, run `bun run sync-skills`, and finish with
+  `bun run sync-skills --check` green.
 - Keep every gallery demo **self-contained + zero-config** (local/static data, no
-  Drizzle table) so it backs its skill and renders standalone.
+  Drizzle table) so it backs its shape and renders standalone.
 - Add/remove a shape as a unit: the gallery route + its `SHAPES` entry + its
-  `Skills · …` sidebar item move together.
+  `Skills · …` sidebar item + its `COMPONENT_SOURCES` entry + its
+  `add-component/references/<name>.md` move together.
 - Re-run `bun run build-base` after a platform-layer or `clean/` change so the
   `scaffold-dashboard` bundle stays current.
 
 **NEVER**
 - Hand-edit `.claude/skills/*/templates/*` — edit the repo source and re-sync.
-- Ship a skill whose demo doesn't render/verify, or whose `MANIFEST` source is
-  missing (`--check` will fail the build).
+- Ship a shape whose demo doesn't render/verify, or whose `COMPONENT_SOURCES`
+  source is missing (`--check` will fail the build).
 
 ### App-code rules (the feature / demo code you write)
 
@@ -193,7 +205,7 @@ the card-grid counterpart with the same plumbing (`useResourceList`).
 - **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
 - **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` / `memoryRepository` (zero-config default) over `ListParams`/`ListResult`. A resource binds an adapter in `server.ts`, typically via `hasDatabase` (`@/lib/backend`). See `docs/data-adapters.md`.
 - **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced, debounced search, opt-in bulk select) and `CardList` + `useResourceList`.
-- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
+- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each is a component in `add-component` (`add-detail-page`, `add-master-detail`, `add-card-list`, …); `add-crud-resource` is a standalone operation skill. Catalogue: `PATTERNS.md`.
 
 ### Sidebar, Skills Gallery & business cases
 
@@ -205,14 +217,15 @@ via `appConfig.nav`. Two halves:
   dashboard + blog) and **Sales (CRM)** (`/crm/*`: forecast / pipeline kanban /
   contacts / companies). `products` and `orders` are real Drizzle resources (with an
   in-memory fallback); the rest are memory-backed. These double as the live demos for
-  the foundational archetype skills (`add-crud-resource`, `add-detail-page`,
-  `add-master-detail`, `add-card-list`, `add-chart-page`). Each is independently
-  removable (`strip-demo`).
-- **Skills Gallery** — one entry per skill, grouped (`Skills Gallery · Overview`, then
+  the foundational archetypes — the `add-crud-resource` operation skill plus the
+  `add-detail-page` / `add-master-detail` / `add-card-list` / `add-chart-page`
+  components of `add-component`. Each is independently removable (`strip-demo`).
+- **Skills Gallery** — one entry per shape, grouped (`Skills Gallery · Overview`, then
   `Skills · Forms` / `Lists & tables` / `Rich views` / `Detail & pages` / `Display &
-  feedback`), each linking to that skill's demo under `/gallery/*`. The Overview
-  (`gallery/index.tsx`) is a tabbed catalogue of every shape (incl. variants not
-  pinned to the sidebar). Trim with `trim-gallery`. Full menu: `docs/gallery-catalogue.md`.
+  feedback`), each linking to that shape's demo under `/gallery/*` (every shape is a
+  component in `add-component`). The Overview (`gallery/index.tsx`) is a tabbed
+  catalogue of every shape (incl. variants not pinned to the sidebar). Trim with
+  `trim-gallery`. Full menu: `docs/gallery-catalogue.md`.
 
 Anchors: generated CRUD resources insert at `// create-resource:anchor` (in the first
 business group); new business-case groups go above `// gallery:anchor`; the `Skills · …`

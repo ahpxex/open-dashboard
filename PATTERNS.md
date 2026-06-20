@@ -7,8 +7,11 @@
 
 **Status:** ✅ implemented & verified · 🚧 planned (spec below is the build target).
 
-See [`ROADMAP.md`](./ROADMAP.md) for sequencing. Once a pattern ships, a matching
-skill lives in `.claude/skills/` and this file links to it.
+See [`ROADMAP.md`](./ROADMAP.md) for sequencing. Once a pattern ships, it is
+reachable through `.claude/skills/`: the operation skills (`add-crud-resource`, …)
+have their own dir, and every UI shape is a component inside the single
+`add-component` skill (`references/<name>.md` + a flat `templates/`). The **Skill**
+column below names either the operation skill or the `add-component` component.
 
 ---
 
@@ -17,11 +20,11 @@ skill lives in `.claude/skills/` and this file links to it.
 | Pattern | Status | Use when | Canonical example | Skill |
 | --- | --- | --- | --- | --- |
 | **CRUD table** | ✅ | List rows with server-side paginate/sort/search/filter + create/edit/delete + bulk select | `features/products`, `routes/_app/products.tsx` | `add-crud-resource` |
-| **Detail / Show** | ✅ | View one record (`/<resource>/$id`) + edit/delete entry | `routes/_app/products_.$id.tsx` | `add-detail-page` |
-| **Master-detail / nested** | ✅ | List + record detail in a side panel (selection in URL) | `routes/_app/orders.tsx` + `orders.$id.tsx` | `add-master-detail` |
-| **Card / grid list** | ✅ | Gallery of cards (same data plumbing as the table) | `routes/_app/posts.tsx` + `features/posts/cards.tsx` | `add-card-list` |
-| **Form page / dialog** | ✅ | Create/edit via a shared keyed-remount dialog (or full-page route) | `features/products/ProductFormDialog.tsx` | `add-form` |
-| **Chart page** | ✅ | Dashboard/analytics view from datasets | `routes/_app/index.tsx` (chart components) | `add-chart-page` |
+| **Detail / Show** | ✅ | View one record (`/<resource>/$id`) + edit/delete entry | `routes/_app/products_.$id.tsx` | `add-detail-page` shape in `add-component` |
+| **Master-detail / nested** | ✅ | List + record detail in a side panel (selection in URL) | `routes/_app/orders.tsx` + `orders.$id.tsx` | `add-master-detail` shape in `add-component` |
+| **Card / grid list** | ✅ | Gallery of cards (same data plumbing as the table) | `routes/_app/posts.tsx` + `features/posts/cards.tsx` | `add-card-list` shape in `add-component` |
+| **Form page / dialog** | ✅ | Create/edit via a shared keyed-remount dialog (or full-page route) | `features/products/ProductFormDialog.tsx` | `add-form` shape in `add-component` |
+| **Chart page** | ✅ | Dashboard/analytics view from datasets | `routes/_app/index.tsx` (chart components) | `add-chart-page` shape in `add-component` |
 
 ### Building blocks (atoms every pattern uses)
 

@@ -4,7 +4,7 @@ A back-office app scaffolded from the **Open Dashboard** platform — a full-sta
 starter on [TanStack Start](https://tanstack.com/start),
 [Drizzle ORM](https://orm.drizzle.team/) + PostgreSQL, and
 [better-auth](https://www.better-auth.com/). The platform shell is in place; build
-your product by composing screens with the `add-*` skills.
+your product with the `add-crud-resource` skill and the `add-component` catalogue.
 
 ## Quick start
 
@@ -39,7 +39,7 @@ bun run dev
 
 1. **Rebrand** — set the name / logo / nav / theme in `src/config/app.ts` (the `rebrand` skill).
 2. **Add resources** — `bun run create-resource <name>` scaffolds a full CRUD vertical (Drizzle table + server fns + query hooks + `DataTable` page + create/edit dialog + sidebar entry). Customise the fields, then `bun run db:generate && bun run db:migrate`.
-3. **Add screens** — compose detail pages, master-detail, card lists, kanban boards, charts, wizards, billing, etc. with the matching `add-*` skills.
+3. **Add screens** — compose detail pages, master-detail, card lists, kanban boards, charts, wizards, billing, etc. from the `add-component` catalogue.
 4. **Pick a backend** — keep the zero-config in-memory backend, set `DATABASE_URL` for Postgres, or swap a preset (Supabase / external API) via the `add-backend-preset` skill.
 
 Architecture and the prescriptive conventions live in [`CLAUDE.md`](./CLAUDE.md).

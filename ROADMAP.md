@@ -83,8 +83,9 @@ shapes portable to a different backend.
    `validateSearch`, so views are shareable and back/forward works.
 5. **Server functions are the only data boundary.** Adapters + secrets never reach
    the browser bundle (enforced by the `require-user` style server-only split).
-6. **Every shape has a skill.** If an agent can't add it by following a skill, the
-   shape isn't done.
+6. **Every shape has a reference doc.** The shapes are catalogued as components in
+   the `add-component` skill (each a `references/<name>.md` doc). If an agent can't
+   add a shape by following its doc, the shape isn't done.
 7. **Demo is removable.** `products`/`orders`/the fake dashboard must be deletable
    by one command, leaving a clean, named shell.
 
@@ -131,9 +132,13 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **Bulk select + bulk actions** on the table (row selection in URL state).
 
 ### Phase 4 — Agent layer (the differentiator) ✅
-- `.claude/skills/`: `add-crud-resource`, `add-detail-page`, `add-card-list`,
-  `add-master-detail`, `add-form`, `add-chart-page`, `add-data-source`, `rebrand`,
-  `strip-demo`. Each: when-to-use, exact files, the canonical example, invariants, verify step.
+- `.claude/skills/`: the operation skills (`add-crud-resource`, `add-data-source`,
+  `rebrand`, `strip-demo`, …) plus the `add-component` umbrella skill — a catalogue
+  of 35+ UI shapes (`add-form`, `add-card-list`, `add-master-detail`,
+  `add-detail-page`, `add-chart-page`, …), each a `references/<name>.md` doc.
+  Each entry: when-to-use, exact files, the canonical example, invariants, verify step.
+  *(The shapes originally shipped as one skill per shape; they were later consolidated
+  into the single `add-component` catalogue.)*
 - `.claude/commands/`: slash wrappers for the high-frequency ones.
 - Keep [`PATTERNS.md`](./PATTERNS.md) as the machine-readable index, in sync with reality.
 - `PORTING.md`: how to start a real product from this base (rebrand → strip demo →

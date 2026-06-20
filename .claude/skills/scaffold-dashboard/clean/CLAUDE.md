@@ -4,10 +4,10 @@ Your back-office app, scaffolded from the **Open Dashboard** platform — a real
 full-stack starter on **TanStack Start** + **Drizzle ORM / PostgreSQL** +
 **better-auth**. The platform shell (UI, form system, charts, the `DataTable` /
 `CardList` infra, the data + auth seams, the routing shell) is in place; the shell
-ships with **no resources yet** — you build the product by **composing screens with
-the `add-*` skills** (`add-crud-resource`, `add-detail-page`, `add-master-detail`,
-`add-card-list`, `add-chart-page`, `add-form`, `add-kanban`, `add-billing`, `add-rbac`,
-…). This file is the app's architecture + conventions.
+ships with **no resources yet** — you build the product by **composing screens**
+with the `add-crud-resource` skill (a full CRUD vertical) and the **`add-component`**
+catalogue (detail pages, master-detail, card lists, charts, forms, kanban, billing,
+RBAC, i18n, …). This file is the app's architecture + conventions.
 
 It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapters
 (no Docker, no Postgres). Set `DATABASE_URL` to use Postgres; both the data
@@ -90,8 +90,8 @@ bun run create-resource <name>              # feature + route + Drizzle table + 
 bun run db:generate && bun run db:migrate   # if you're on Postgres
 ```
 
-Then customise the fields. Or compose a different shape with the matching `add-*`
-skill (detail page, master-detail, card list, kanban, chart page, settings, …).
+Then customise the fields. Or compose a different shape from the `add-component`
+catalogue (detail page, master-detail, card list, kanban, chart page, settings, …).
 
 ## Commands
 

@@ -1,6 +1,6 @@
 # Open Dashboard
 
-> A full-stack back-office template that an **AI agent composes for you** — fork it, point it at a product, and it assembles your dashboard from 40+ copy-ready skills. Every skill is proven by a live demo in the repo.
+> A full-stack back-office template that an **AI agent composes for you** — fork it, point it at a product, and it assembles your dashboard from a catalogue of 35+ copy-ready UI shapes. Every shape is proven by a live demo in the repo.
 
 Most admin starters are one of two things: a pretty UI kit with no real backend, or a clone-and-hand-rewire boilerplate. **Open Dashboard is neither.** It is a real full-stack app *and* an **AI-native substrate**: the repo is the source of truth for a catalogue of **skills** (`.claude/skills/`) — CRUD tables, detail pages, kanban boards, calendars, wizards, billing, RBAC, i18n, and more — each a copy-ready UI *shape*. An agent (Claude Code) forks the repo and **composes** the product you need from those shapes instead of reverse-engineering a codebase.
 
@@ -10,16 +10,18 @@ It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapter
 
 ## What makes it different
 
-### A catalogue of skills, not a fixed app
+### A catalogue of shapes, not a fixed app
 
-`.claude/skills/` holds **40-plus skills** — one per admin UI shape or operation:
-`add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`,
-`add-chart-page`, `add-form`, `add-kanban`, `add-calendar`, `add-tree-view`,
-`add-timeline`, `add-wizard-form`, `add-inline-edit`, `add-virtual-table`,
-`add-table-columns`, `add-saved-views`, `add-global-search`, `add-rbac`,
-`add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, … plus operations
-like `rebrand`, `strip-demo`, `trim-gallery`, and `add-backend-preset`. Each ships
-copy-ready `templates/` and an invariants checklist. You build an app by **picking
+`.claude/skills/` holds one **`add-component`** skill — a catalogue + retriever over
+**35+ copy-ready admin UI shapes** (`add-crud-resource`'s detail/master-detail/
+card-list/chart-page archetypes, plus `add-form`, `add-kanban`, `add-calendar`,
+`add-tree-view`, `add-timeline`, `add-wizard-form`, `add-inline-edit`,
+`add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`,
+`add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …) —
+plus a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
+`add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`,
+`add-tests`). Each shape ships a copy-ready template + a reference doc (the exact
+`cp` + rewire steps, foundation, invariants). You build an app by **picking
 shapes**, not by editing a monolith.
 
 ### The Skills Gallery is the proof
@@ -148,7 +150,8 @@ Aider** and other agents can load and follow these skills too.
 
 **Claude Code plugin** — the repo ships a
 [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json), so Claude
-Code users can install the whole **43-skill catalogue** natively:
+Code users can install the whole catalogue natively (the `add-component` shape
+catalogue + the operation skills):
 
 ```
 /plugin marketplace add ahpxex/open-dashboard-next
@@ -156,7 +159,7 @@ Code users can install the whole **43-skill catalogue** natively:
 ```
 
 Each skill is then available namespaced under the plugin (e.g.
-`open-dashboard:add-kanban`), so it never collides with other installed skill packs.
+`open-dashboard:add-component`), so it never collides with other installed skill packs.
 
 > **These are substrate-coupled skills, not standalone drop-ins.** Each *shape*
 > skill ships a `templates/*` file that imports this repo's platform layer
@@ -172,7 +175,7 @@ Each skill is then available namespaced under the plugin (e.g.
 ```
 open-dashboard-next/
 ├── .claude/
-│   ├── skills/              # 40+ skills — the catalogue an agent composes from
+│   ├── skills/              # add-component (35+ UI shapes) + operation skills
 │   └── commands/            # /add-resource, /port
 ├── docs/                    # backends, data-adapters, resources, gallery-catalogue
 ├── drizzle/                 # Generated SQL migrations

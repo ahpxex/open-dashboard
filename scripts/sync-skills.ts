@@ -17,57 +17,77 @@ import { basename, join } from "node:path";
 const root = process.cwd();
 const skillsDir = join(root, ".claude/skills");
 
-/** skill name -> repo source files copied verbatim into that skill's templates/. */
-const MANIFEST: Record<string, string[]> = {
-  // Gallery shapes
-  "add-list-view": [
-    "src/routes/_app/gallery/list-lite.tsx",
-    "src/routes/_app/gallery/list-lazy.tsx",
-  ],
-  "add-infinite-list": ["src/routes/_app/gallery/list-infinite.tsx"],
-  "add-virtual-table": ["src/routes/_app/gallery/table-virtual.tsx"],
-  "add-inline-edit": ["src/routes/_app/gallery/table-inline-edit.tsx"],
-  "add-filter-panel": ["src/routes/_app/gallery/filter-panel.tsx"],
-  "add-export-import": [
-    "src/routes/_app/gallery/export-import.tsx",
-    "src/infra/data/csv.ts",
-  ],
-  "add-table-columns": [
-    "src/routes/_app/gallery/table-columns.tsx",
-    "src/infra/table/ColumnControls.tsx",
-  ],
-  "add-saved-views": [
-    "src/routes/_app/gallery/saved-views.tsx",
-    "src/infra/table/SavedViews.tsx",
-  ],
-  "add-kanban": ["src/routes/_app/gallery/kanban.tsx"],
-  "add-tree-view": ["src/routes/_app/gallery/tree.tsx"],
-  "add-calendar": ["src/routes/_app/gallery/calendar.tsx"],
-  "add-timeline": ["src/routes/_app/gallery/timeline.tsx"],
-  "add-notifications": [
-    "src/routes/_app/gallery/notifications.tsx",
-    "src/components/NotificationCenter.tsx",
-  ],
-  "add-realtime": [
-    "src/routes/_app/gallery/realtime.tsx",
-    "src/lib/use-live-query.ts",
-  ],
-  "add-audit-log": [
-    "src/routes/_app/gallery/audit-log.tsx",
-    "src/components/data/AuditTrail.tsx",
+/**
+ * The UI-shape components folded into the single `add-component` catalogue skill.
+ * Each entry maps a component name -> the repo source file(s) copied (basename
+ * only) into the shared `add-component/templates/`. Grouped to match the catalogue
+ * in `add-component/SKILL.md`. The per-component reference docs
+ * (`add-component/references/<name>.md`) are hand-authored prose, not generated.
+ */
+const COMPONENT_SOURCES: Record<string, string[]> = {
+  // Forms
+  "add-form": [
+    "src/routes/_app/gallery/form-page.tsx",
+    "src/routes/_app/gallery/form-scroll.tsx",
+    "src/routes/_app/gallery/form-fixed.tsx",
+    "src/routes/_app/gallery/form-array.tsx",
+    "src/routes/_app/gallery/form-actions.tsx",
   ],
   "add-wizard-form": ["src/routes/_app/gallery/form-wizard.tsx"],
   "add-field-combobox": [
     "src/routes/_app/gallery/form-combobox.tsx",
     "src/components/form/ComboboxField.tsx",
   ],
+  "add-file-upload": [
+    "src/routes/_app/gallery/file-upload.tsx",
+    "src/components/form/FileField.tsx",
+    "src/infra/storage/storage.ts",
+  ],
+  "add-inline-edit": ["src/routes/_app/gallery/table-inline-edit.tsx"],
+  // Lists & tables
+  "add-card-list": ["src/routes/_app/posts.tsx"],
+  "add-list-view": [
+    "src/routes/_app/gallery/list-lite.tsx",
+    "src/routes/_app/gallery/list-lazy.tsx",
+  ],
+  "add-infinite-list": ["src/routes/_app/gallery/list-infinite.tsx"],
+  "add-virtual-table": ["src/routes/_app/gallery/table-virtual.tsx"],
+  "add-table-columns": [
+    "src/routes/_app/gallery/table-columns.tsx",
+    "src/infra/table/ColumnControls.tsx",
+  ],
+  "add-filter-panel": ["src/routes/_app/gallery/filter-panel.tsx"],
+  "add-saved-views": [
+    "src/routes/_app/gallery/saved-views.tsx",
+    "src/infra/table/SavedViews.tsx",
+  ],
+  "add-export-import": [
+    "src/routes/_app/gallery/export-import.tsx",
+    "src/infra/data/csv.ts",
+  ],
+  // Rich views
+  "add-kanban": ["src/routes/_app/gallery/kanban.tsx"],
+  "add-calendar": ["src/routes/_app/gallery/calendar.tsx"],
+  "add-tree-view": ["src/routes/_app/gallery/tree.tsx"],
+  "add-timeline": ["src/routes/_app/gallery/timeline.tsx"],
+  "add-master-detail": [
+    "src/routes/_app/orders.tsx",
+    "src/routes/_app/orders.$id.tsx",
+  ],
+  // Detail & pages
+  "add-detail-page": ["src/routes/_app/products_.$id.tsx"],
   "add-record-tabs": ["src/routes/_app/gallery/record-tabs.tsx"],
+  "add-related-records": [
+    "src/routes/_app/gallery/related-records.tsx",
+    "src/components/data/RelatedList.tsx",
+  ],
+  "add-page-layout": ["src/routes/_app/gallery/split-layout.tsx"],
   "add-settings-page": [
     "src/routes/_app/gallery/control-page.tsx",
     "src/routes/_app/gallery/profile.tsx",
   ],
-  "add-empty-state": ["src/routes/_app/gallery/empty-state.tsx"],
-  "add-page-layout": ["src/routes/_app/gallery/split-layout.tsx"],
+  "add-chart-page": ["src/routes/_app/index.tsx"],
+  // Display & feedback
   "add-data-display": [
     "src/routes/_app/gallery/data-display.tsx",
     "src/components/data/TagList.tsx",
@@ -75,19 +95,20 @@ const MANIFEST: Record<string, string[]> = {
     "src/components/data/ProgressTile.tsx",
     "src/components/data/UserCell.tsx",
   ],
+  "add-empty-state": ["src/routes/_app/gallery/empty-state.tsx"],
   "add-feedback-states": [
     "src/routes/_app/gallery/feedback.tsx",
     "src/components/feedback/StateView.tsx",
   ],
-  "add-file-upload": [
-    "src/routes/_app/gallery/file-upload.tsx",
-    "src/components/form/FileField.tsx",
-    "src/infra/storage/storage.ts",
+  "add-notifications": [
+    "src/routes/_app/gallery/notifications.tsx",
+    "src/components/NotificationCenter.tsx",
   ],
-  "add-related-records": [
-    "src/routes/_app/gallery/related-records.tsx",
-    "src/components/data/RelatedList.tsx",
+  "add-audit-log": [
+    "src/routes/_app/gallery/audit-log.tsx",
+    "src/components/data/AuditTrail.tsx",
   ],
+  // Platform features
   "add-rbac": [
     "src/routes/_app/gallery/rbac.tsx",
     "src/lib/rbac.ts",
@@ -107,24 +128,19 @@ const MANIFEST: Record<string, string[]> = {
     "src/components/billing/PlanCard.tsx",
     "src/components/billing/UsageMeter.tsx",
   ],
-  // Testing scaffold (no gallery route — a resource test exemplar)
+  "add-realtime": [
+    "src/routes/_app/gallery/realtime.tsx",
+    "src/lib/use-live-query.ts",
+  ],
+};
+
+/** skill name -> repo source files copied verbatim into that skill's templates/. */
+const MANIFEST: Record<string, string[]> = {
+  // The whole UI-shape catalogue ships as ONE retriever skill: all component
+  // templates land in add-component/templates/ (flat, basename only).
+  "add-component": Object.values(COMPONENT_SOURCES).flat(),
+  // Testing scaffold (a resource test exemplar) — a standalone operation skill.
   "add-tests": ["src/features/__examples__/resource.test.ts"],
-  // Form variants (the dialog lives in the CRUD vertical; these are the page forms)
-  "add-form": [
-    "src/routes/_app/gallery/form-page.tsx",
-    "src/routes/_app/gallery/form-scroll.tsx",
-    "src/routes/_app/gallery/form-fixed.tsx",
-    "src/routes/_app/gallery/form-array.tsx",
-    "src/routes/_app/gallery/form-actions.tsx",
-  ],
-  // Core archetype routes (the canonical wired examples)
-  "add-detail-page": ["src/routes/_app/products_.$id.tsx"],
-  "add-master-detail": [
-    "src/routes/_app/orders.tsx",
-    "src/routes/_app/orders.$id.tsx",
-  ],
-  "add-card-list": ["src/routes/_app/posts.tsx"],
-  "add-chart-page": ["src/routes/_app/index.tsx"],
 };
 
 const check = process.argv.includes("--check");
@@ -134,7 +150,19 @@ let missing = 0;
 
 for (const [skill, sources] of Object.entries(MANIFEST)) {
   const templatesDir = join(skillsDir, skill, "templates");
+  // Templates are flat (basename only); two sources sharing a basename would
+  // silently clobber each other in the bundle. Catch that here.
+  const basenames = new Set<string>();
   for (const src of sources) {
+    const base = basename(src);
+    if (basenames.has(base)) {
+      console.error(
+        `  basename collision: ${base} (in ${skill}) — rename a source`,
+      );
+      missing++;
+      continue;
+    }
+    basenames.add(base);
     const from = join(root, src);
     if (!existsSync(from)) {
       console.error(`  missing source: ${src} (for ${skill})`);

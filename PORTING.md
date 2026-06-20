@@ -46,14 +46,18 @@ model). Adapters/providers run only server-side, so secrets stay off the client.
 For each entity in the brief, scaffold the vertical and add the page shapes it
 needs:
 
-| Need | Skill |
+| Need | Skill / component |
 | --- | --- |
 | List + create/edit/delete + bulk select | `add-crud-resource` |
-| View one record | `add-detail-page` |
-| Inbox / triage (list + side panel) | `add-master-detail` |
-| Gallery of cards | `add-card-list` |
-| Validated input | `add-form` |
-| Metrics / overview | `add-chart-page` |
+| View one record | `add-detail-page` shape in `add-component` |
+| Inbox / triage (list + side panel) | `add-master-detail` shape in `add-component` |
+| Gallery of cards | `add-card-list` shape in `add-component` |
+| Validated input | `add-form` shape in `add-component` |
+| Metrics / overview | `add-chart-page` shape in `add-component` |
+
+The shape rows above are reference docs inside the single `add-component`
+catalogue (`add-component` → `references/<name>.md`); `add-crud-resource` is a
+standalone operation skill.
 
 `products` (rich, Drizzle), `orders` (master-detail, Drizzle), and `posts`
 (card list, REST) are the canonical examples — copy the closest one.
