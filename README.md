@@ -16,7 +16,7 @@ It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapter
 **35+ copy-ready admin UI shapes** (the detail/master-detail/
 card-list/chart-page archetypes, plus `add-form`, `add-kanban`, `add-calendar`,
 `add-tree-view`, `add-timeline`, `add-wizard-form`, `add-inline-edit`,
-`add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`,
+`add-virtual-table`, `add-table-columns`, `add-bulk-actions`, `add-saved-views`, `add-global-search`,
 `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …) —
 plus a handful of **operation skills** (`scaffold-dashboard`, `add-backend`,
 `rebrand`). Each shape ships
@@ -74,7 +74,7 @@ make it type-safe from the database row to the route loader. No mock data.
 ### UI & state
 
 - **[shadcn/ui](https://ui.shadcn.com/)** built on **[`@base-ui/react`](https://base-ui.com/)** (not Radix), **Tailwind CSS v4**, **[Phosphor Icons](https://phosphoricons.com/)**, light/dark via **[next-themes](https://github.com/pacocoursey/next-themes)**.
-- **[Recharts](https://recharts.org/)** charts, **[Zustand](https://zustand-demo.pmnd.rs/)** client state, **[Zod](https://zod.dev/)** validation.
+- **[Recharts](https://recharts.org/)** charts, **[dnd-kit](https://dndkit.com/)** drag-and-drop (kanban), **[Zustand](https://zustand-demo.pmnd.rs/)** client state, **[Zod](https://zod.dev/)** validation.
 
 ### Tooling
 
@@ -102,7 +102,7 @@ Prerequisites: [Bun](https://bun.sh/) and [Docker](https://www.docker.com/) (for
 bun run db:up        # start Postgres (docker compose up -d)
 cp .env.example .env # defaults match the Docker setup above
 bun run db:migrate   # apply migrations in ./drizzle
-bun run db:seed      # ~60 demo products + a dev login account
+bun run db:seed      # ~60 demo products + a dozen orders + a dev login account
 bun run dev
 ```
 
@@ -184,6 +184,7 @@ open-dashboard-next/
 ├── .claude/
 │   ├── skills/              # add-component (35+ UI shapes) + operation skills
 │   └── commands/            # /add-resource, /port
+├── .github/workflows/       # CI: repo gates + drift guards + clean-base verify
 ├── docs/                    # backends, data-adapters, resources, gallery-catalogue
 ├── drizzle/                 # Generated SQL migrations
 ├── scripts/
@@ -225,7 +226,7 @@ open-dashboard-next/
 | `bun run typecheck` / `bun run test` | `tsc --noEmit` / Vitest. |
 | `bun run db:up` / `db:down` | Start / stop local Postgres (Docker Compose). |
 | `bun run db:generate` / `db:migrate` / `db:push` / `db:studio` | Drizzle migrations & Studio. |
-| `bun run db:seed` | Seed demo products + a dev account (`dev@example.com` / `password`). |
+| `bun run db:seed` | Seed demo products + orders + a dev account (`dev@example.com` / `password`). |
 | `bun run create-resource <name>` | Scaffold a new CRUD resource. |
 | `bun run sync-skills` / `sync-skills --check` | Regenerate skill `templates/` from repo source / verify they're in sync (template maintenance). |
 | `bun run build-base` | Reassemble the `scaffold-dashboard` base bundle (template maintenance). |

@@ -1,7 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
 import { db } from "../src/db/index.ts";
-import { accounts, products, users } from "../src/db/schema.ts";
+import { accounts, orders, products, users } from "../src/db/schema.ts";
+import { demoOrders } from "../src/features/orders/demo-data.ts";
 import { auth } from "../src/lib/auth.ts";
 
 const categories = [
@@ -34,6 +35,12 @@ async function seed() {
 
   await db.insert(products).values(rows);
   console.log(`✓ Inserted ${rows.length} products.`);
+
+  // Orders — reuse the curated demo set so the Postgres path shows the same
+  // populated revenue overview as the zero-config in-memory backend.
+  await db.delete(orders);
+  await db.insert(orders).values(demoOrders);
+  console.log(`✓ Inserted ${demoOrders.length} orders.`);
 
   // Known local dev account. Hash the password with better-auth's own hasher
   // so `signIn.email` works exactly like a real registration.
