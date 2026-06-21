@@ -1,5 +1,7 @@
 # Add a form
 
+**Requires:** to wire a *real* resource (persist on submit), an existing `features/<name>/` resource (run `add-backend` / `create-resource` first). The bundled page demos toast the payload and run standalone with no resource.
+
 A validated form built on `@/components/form` (TanStack Form + zod) with bound
 fields, a server-error slot, and a submit disabled while invalid. Five full-page
 variants are **bundled** under `templates/` — copy the one that fits, don't paste

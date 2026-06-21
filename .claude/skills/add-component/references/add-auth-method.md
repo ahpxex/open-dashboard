@@ -8,8 +8,13 @@ don't paste:
   drop-in "Continue with GitHub/Google" buttons; calls
   `authClient.signIn.social({ provider })` and toasts gracefully if a provider
   isn't configured.
-- `templates/auth-methods.tsx` → `src/routes/_app/gallery/auth-methods.tsx` — the
-  demo (social buttons + a magic-link request form, UI only).
+- `templates/auth-methods.tsx` → a real route (UI-only demo: social buttons + a
+  magic-link request form). In this substrate repo the demo lives at
+  `src/routes/_app/gallery/auth-methods.tsx`; in a scaffolded product you normally
+  don't copy this demo at all — the social buttons go straight onto
+  `src/routes/_auth/login.tsx` (step 1 below). Copy it only if you want a
+  standalone sign-in-options page, to a real route under `src/routes/_app/` (e.g.
+  `src/routes/_app/settings/security.tsx`) with a sidebar entry.
 
 ## Add it
 

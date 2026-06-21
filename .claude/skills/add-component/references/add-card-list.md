@@ -1,5 +1,7 @@
 # Add a Card/grid list
 
+**Requires:** an existing `features/<name>/` resource (run `add-backend` / `create-resource` first).
+
 A resource rendered as a responsive card grid instead of a table, reusing the
 same URL state + query + search/filter/paginate plumbing (`useResourceList` +
 `CardList`). The route is **bundled** at `templates/posts.tsx` — copy, don't paste.

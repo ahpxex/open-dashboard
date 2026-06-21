@@ -1,13 +1,14 @@
 ---
 name: scaffold-dashboard
-description: Stand up the dashboard foundation (the platform layer — UI primitives, form system, charts, Repository + adapters, auth seam, theme, routing shell) into a new project as a zero-config runnable app. Run this FIRST when building a dashboard, then compose screens from the add-* shape skills.
+description: Stand up the dashboard foundation (the platform layer — UI primitives, form system, charts, Repository + adapters, auth seam, theme, routing shell) into a new project as a zero-config runnable app. Run this FIRST when building a dashboard, then compose screens from the add-component catalogue's shapes (add-detail-page, add-kanban, …) and the add-backend operation skill.
 ---
 
 # Scaffold the dashboard foundation
 
 The whole foundation is **bundled** at `base/` — a clean, runnable app shell with
-no demo content. Materialize it into a new project, then add screens with the
-`add-*` skills. You don't read the foundation code — you scaffold it.
+no demo content. Materialize it into a new project, then add screens from the
+`add-component` catalogue's shapes (and the `add-backend` operation skill). You
+don't read the foundation code — you scaffold it.
 
 ## Scaffold
 
@@ -59,16 +60,20 @@ copy a pile of gallery shapes into the nav. Don't. Instead:
 - **Seed believable data** — real names, dates, statuses, amounts. Three rows of
   `Alpha/Beta/Gamma` read as a demo; a dozen realistic records read as a product.
 
-## Add screens (compose from the shape skills)
+## Add screens (compose from the add-component catalogue)
 
-Each shape skill copies a bundled template into the new project:
+The shapes below are **references inside the single `add-component` catalogue** (not
+separate invocable skills); each copies a bundled template into the new project.
+Data + CRUD comes from the `add-backend` operation skill.
 
 - **Resources** (data + CRUD): `bun run create-resource <name>` (or `add-backend`),
-  then `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`.
-- **Shapes**: `add-list-view`, `add-kanban`, `add-tree-view`, `add-calendar`,
-  `add-timeline`, `add-virtual-table`, `add-inline-edit`, `add-filter-panel`,
-  `add-wizard-form`, `add-field-combobox`, `add-record-tabs`, `add-settings-page`,
-  `add-empty-state`, `add-page-layout`, `add-data-display`, `add-feedback-states`.
+  then the catalogue's `add-detail-page`, `add-master-detail`, `add-card-list`,
+  `add-form`, `add-chart-page`.
+- **Shapes** (all in `add-component`): `add-list-view`, `add-kanban`,
+  `add-tree-view`, `add-calendar`, `add-timeline`, `add-virtual-table`,
+  `add-inline-edit`, `add-filter-panel`, `add-wizard-form`, `add-field-combobox`,
+  `add-record-tabs`, `add-settings-page`, `add-empty-state`, `add-page-layout`,
+  `add-data-display`, `add-feedback-states`.
 
 After copying a template, add a sidebar entry in `src/lib/sidebar-items.ts` (above
 the `// create-resource:anchor`) so it shows in the nav.

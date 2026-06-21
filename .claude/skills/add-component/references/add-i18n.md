@@ -10,9 +10,14 @@ under `templates/` — copy, don't paste.
 
 ```bash
 cp .claude/skills/add-component/templates/i18n.tsx src/lib/i18n.tsx
-# Optional: a gallery panel showing a live locale switcher
-cp .claude/skills/add-component/templates/localization.tsx src/routes/_app/gallery/localization.tsx
+# Optional: a panel showing a live locale switcher
+cp .claude/skills/add-component/templates/localization.tsx src/routes/_app/settings/language.tsx
 ```
+
+In this substrate repo the demo lives at `src/routes/_app/gallery/localization.tsx`;
+in a scaffolded product copy it to a real route under `src/routes/_app/` (e.g. a
+settings page) and add a sidebar entry — or just fold the locale switcher into an
+existing settings page.
 
 Then:
 1. **Wrap a subtree** (the whole app in `__root.tsx`, or one page) in

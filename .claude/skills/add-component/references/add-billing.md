@@ -11,8 +11,12 @@ its two factored components (`PlanCard`, `UsageMeter`) are **bundled** under
 ```bash
 cp .claude/skills/add-component/templates/PlanCard.tsx src/components/billing/PlanCard.tsx
 cp .claude/skills/add-component/templates/UsageMeter.tsx src/components/billing/UsageMeter.tsx
-cp .claude/skills/add-component/templates/billing.tsx src/routes/_app/gallery/billing.tsx
+cp .claude/skills/add-component/templates/billing.tsx src/routes/_app/billing.tsx
 ```
+
+In this substrate repo the demo lives at `src/routes/_app/gallery/billing.tsx`; in
+a scaffolded product copy it to a real route under `src/routes/_app/` and add a
+sidebar entry.
 
 Then in the copied page:
 1. Set the `createFileRoute("/_app/...")` path to match the file path.

@@ -1,5 +1,7 @@
 # Add a Detail/Show page
 
+**Requires:** an existing `features/<name>/` resource (run `add-backend` / `create-resource` first).
+
 A standalone page at `/<name>/$id` that loads one record and shows a breadcrumb,
 a header (name + `StatusChip` + Edit/Delete), and a `DescriptionList` of fields,
 with loading + not-found states. The route is **bundled** at

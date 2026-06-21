@@ -1,5 +1,7 @@
 # Add related records
 
+**Requires:** an existing `features/<name>/` resource (run `add-backend` / `create-resource` first).
+
 A parent record and its related children on one page — the inline counterpart to
 `add-master-detail` (list + side panel) and `add-record-tabs` (children in tabs).
 The generic `RelatedList` (a titled, compact table) and a showcase page are

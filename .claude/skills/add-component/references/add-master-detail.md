@@ -1,5 +1,7 @@
 # Add a Master-detail (split) view
 
+**Requires:** an existing `features/<name>/` resource (run `add-backend` / `create-resource` first).
+
 The list stays mounted on the left; selecting a row opens its detail in a side
 panel on the right via a nested route, with selection in the URL. Both halves are
 **bundled** — `templates/orders.tsx` (list + layout) and `templates/orders.$id.tsx`

@@ -12,8 +12,13 @@ navigates to the selected result's `href`. The component and a gallery demo are
 ```bash
 cp .claude/skills/add-component/templates/GlobalSearch.tsx src/components/GlobalSearch.tsx
 # Optional: an always-open demo over mock resources
-cp .claude/skills/add-component/templates/global-search.tsx src/routes/_app/gallery/global-search.tsx
+cp .claude/skills/add-component/templates/global-search.tsx src/routes/_app/search.tsx
 ```
+
+In this substrate repo the demo lives at `src/routes/_app/gallery/global-search.tsx`;
+in a scaffolded product copy it to a real route under `src/routes/_app/` and add a
+sidebar entry (or skip the route entirely and just wire `GlobalSearch` into the
+header ⌘K).
 
 Then:
 1. **Wire real sources.** Map each resource's list rows to results:
