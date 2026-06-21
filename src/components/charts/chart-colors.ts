@@ -17,8 +17,8 @@ export function chartColor(index: number): string {
   return CHART_COLORS[index % CHART_COLORS.length];
 }
 
-/** Always-prominent colour for a primary series (flips with the theme). */
-export const CHART_PRIMARY = "var(--foreground)";
+/** Always-prominent colour for a primary series (the brand accent, flips with the theme). */
+export const CHART_PRIMARY = "var(--primary)";
 /** Muted colour for a secondary series. */
 export const CHART_SECONDARY = "var(--muted-foreground)";
 

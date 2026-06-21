@@ -5,11 +5,13 @@ import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { OrderItem } from "@/db/schema";
 import { statusColorMap } from "@/features/orders/columns";
 import { OrderFormDialog } from "@/features/orders/OrderFormDialog";
 import { orderDetailQuery, useDeleteOrder } from "@/features/orders/queries";
 import type { OrderStatus } from "@/features/orders/schema";
 import { DescriptionList, StatusChip } from "@/infra/ui";
+import { formatMoney } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/orders/$id")({
   loader: async ({ context, params }) => {
@@ -121,7 +123,8 @@ function OrderPanel() {
           <DescriptionList
             columns={1}
             items={[
-              { label: "Status", value: order.status },
+              { label: "Customer", value: order.customer || "—" },
+              { label: "Total", value: formatMoney(order.total) },
               {
                 label: "Created",
                 value: new Date(order.createdAt).toLocaleString(),
@@ -137,6 +140,8 @@ function OrderPanel() {
               },
             ]}
           />
+
+          <OrderLineItems items={order.items ?? []} total={order.total} />
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setEditing(true)}>
@@ -164,5 +169,56 @@ function OrderPanel() {
         onOpenChange={setEditing}
       />
     </aside>
+  );
+}
+
+/** Compact line-items table with a total row; empty state when there are none. */
+function OrderLineItems({
+  items,
+  total,
+}: {
+  items: OrderItem[];
+  total: number;
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No line items on this order.
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        Line items
+      </h3>
+      <div className="border border-border">
+        <table className="w-full text-sm">
+          <tbody>
+            {items.map((it) => (
+              <tr key={it.sku} className="border-b border-border last:border-0">
+                <td className="px-3 py-2">
+                  <div className="font-medium">{it.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {it.sku} · {it.qty} × {formatMoney(it.unitPrice)}
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {formatMoney(it.qty * it.unitPrice)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-border">
+              <td className="px-3 py-2 text-right font-medium">Total</td>
+              <td className="px-3 py-2 text-right font-semibold tabular-nums">
+                {formatMoney(total)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
   );
 }

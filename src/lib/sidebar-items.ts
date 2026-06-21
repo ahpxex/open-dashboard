@@ -25,6 +25,7 @@ import {
   IdentificationCardIcon,
   InfinityIcon,
   KanbanIcon,
+  ListChecksIcon,
   MagnifyingGlassIcon,
   PackageIcon,
   PencilSimpleIcon,
@@ -149,6 +150,11 @@ export const mainMenuItems: MenuGroup[] = [
         label: "Inline-edit table",
         href: "/gallery/table-inline-edit",
         icon: PencilSimpleIcon,
+      },
+      {
+        label: "Bulk actions",
+        href: "/gallery/bulk-actions",
+        icon: ListChecksIcon,
       },
       {
         label: "Filter panel",

@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import {
   FormError,
+  NumberField,
   SelectField,
   SubmitButton,
   TextareaField,
@@ -18,24 +19,40 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Order } from "@/db/schema";
+import { centsToDollars, dollarsToCents } from "@/lib/format";
 import { errorMessage } from "@/lib/toast";
 import { useCreateOrder, useUpdateOrder } from "./queries";
-import {
-  type OrderInput,
-  ordersFormSchema,
-  ordersInputSchema,
-  ordersStatuses,
-} from "./schema";
+import { ordersFormSchema, ordersInputSchema, ordersStatuses } from "./schema";
 
-const EMPTY_FORM: OrderInput = { name: "", status: "active", description: "" };
+/** Form values mirror `ordersFormSchema` — `total` is edited in DOLLARS. */
+type OrderFormValues = {
+  name: string;
+  customer: string;
+  status: Order["status"];
+  total: number;
+  description: string;
+};
 
-const statusOptions = ordersStatuses.map((value) => ({ value, label: value }));
+const EMPTY_FORM: OrderFormValues = {
+  name: "",
+  customer: "",
+  status: "pending",
+  total: 0,
+  description: "",
+};
 
-function toForm(row?: Order): OrderInput {
+const statusOptions = ordersStatuses.map((value) => ({
+  value,
+  label: value.charAt(0).toUpperCase() + value.slice(1),
+}));
+
+function toForm(row?: Order): OrderFormValues {
   if (!row) return { ...EMPTY_FORM };
   return {
     name: row.name,
-    status: row.status as OrderInput["status"],
+    customer: row.customer,
+    status: row.status,
+    total: centsToDollars(row.total),
     description: row.description ?? "",
   };
 }
@@ -93,7 +110,16 @@ function OrderForm({
     validators: { onChange: ordersFormSchema },
     onSubmit: async ({ value }) => {
       setServerError(null);
-      const payload = ordersInputSchema.parse(value);
+      // Convert dollars→cents and carry existing line items through (the form
+      // edits the header, not the items), then validate the wire payload.
+      const payload = ordersInputSchema.parse({
+        name: value.name,
+        customer: value.customer,
+        status: value.status,
+        total: dollarsToCents(value.total),
+        description: value.description,
+        items: row?.items ?? [],
+      });
       try {
         if (mode === "edit" && row) {
           await update.mutateAsync({ id: row.id, ...payload });
@@ -118,14 +144,18 @@ function OrderForm({
     >
       <FormError message={serverError} />
 
-      <TextField form={form} name="name" label="Name" required />
+      <TextField form={form} name="name" label="Order" required />
+      <TextField form={form} name="customer" label="Customer" required />
 
-      <SelectField
-        form={form}
-        name="status"
-        label="Status"
-        options={statusOptions}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <SelectField
+          form={form}
+          name="status"
+          label="Status"
+          options={statusOptions}
+        />
+        <NumberField form={form} name="total" label="Total ($)" min={0} />
+      </div>
 
       <TextareaField
         form={form}

@@ -16,9 +16,11 @@ import {
 
 export const ordersRepository: Repository<Order, NewOrder> = hasDatabase
   ? drizzleRepository(orders, {
-      searchColumns: [orders.name],
+      searchColumns: [orders.name, orders.customer],
       sortColumns: {
         name: orders.name,
+        customer: orders.customer,
+        total: orders.total,
         status: orders.status,
         createdAt: orders.createdAt,
       },
@@ -27,8 +29,8 @@ export const ordersRepository: Repository<Order, NewOrder> = hasDatabase
       updatedAtKey: "updatedAt",
     })
   : memoryRepository<Order, NewOrder>(demoOrders, {
-      searchFields: ["name"],
-      sortFields: ["name", "status", "createdAt"],
+      searchFields: ["name", "customer"],
+      sortFields: ["name", "customer", "total", "status", "createdAt"],
       filterFields: ["status"],
       defaultSort: { field: "createdAt", dir: "desc" },
       updatedAtKey: "updatedAt",

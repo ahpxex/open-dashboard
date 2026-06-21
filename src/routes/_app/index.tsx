@@ -1,13 +1,14 @@
 import {
   CurrencyDollarIcon,
-  PackageIcon,
   ReceiptIcon,
+  TrendUpIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import {
+  AreaChart,
   BarChart,
   ChartCard,
   PieChart,
@@ -17,22 +18,27 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Order } from "@/db/schema";
+import { statusColorMap } from "@/features/orders/columns";
 import { ordersListQuery } from "@/features/orders/queries";
-import type { OrderListParams } from "@/features/orders/schema";
+import type { OrderListParams, OrderStatus } from "@/features/orders/schema";
 import { productsListQuery } from "@/features/products/queries";
 import type { ProductListParams } from "@/features/products/schema";
+import { StatusChip } from "@/infra/ui";
+import { formatMoney } from "@/lib/format";
 
 /**
  * Store overview — the app home (`/`) and the canonical example for the
- * `add-chart-page` skill. A dashboard composed from the live `products` and
- * `orders` resources: KPI StatCards, a Bar + Pie ChartCard pair, a recent-items
- * list, and quick actions. Copy this file's shape to build any metrics screen.
+ * `add-chart-page` skill. A real analytics view composed from the live
+ * `products` and `orders` resources: KPI StatCards with period-over-period
+ * trends, a revenue time-series (AreaChart), a top-customers bar + orders-by-
+ * status pie, and a recent-orders feed. Copy this file's shape for any metrics
+ * screen — then swap in your own resources and aggregates.
  */
 
-// Aggregation ceiling: the KPIs/charts below are computed from the returned
-// `rows`, so a `pageSize` of 100 caps every metric at the first 100 records —
-// with >100 products/orders the dashboard would silently undercount. Fine for
-// the demo resources; a large, real resource should aggregate server-side via a
+// Aggregation ceiling: the KPIs/charts are computed from the returned `rows`, so
+// a `pageSize` of 100 caps every metric at the first 100 records. Fine for the
+// demo resources; a large, real resource should aggregate server-side via a
 // dedicated stats server fn (SUM/COUNT/GROUP BY) instead of paging rows here.
 const ALL_PRODUCTS: ProductListParams = {
   page: 1,
@@ -41,13 +47,17 @@ const ALL_PRODUCTS: ProductListParams = {
   status: "",
 };
 
-// See ALL_PRODUCTS: same 100-row aggregation ceiling applies to orders.
 const ALL_ORDERS: OrderListParams = {
   page: 1,
   pageSize: 100,
   search: "",
   status: "",
 };
+
+/** Statuses that count as recognised revenue. */
+const REVENUE_STATUSES: OrderStatus[] = ["paid", "fulfilled"];
+const isRevenue = (o: Order) =>
+  REVENUE_STATUSES.includes(o.status as OrderStatus);
 
 export const Route = createFileRoute("/_app/")({
   loader: async ({ context }) => {
@@ -59,9 +69,6 @@ export const Route = createFileRoute("/_app/")({
   component: StoreOverview,
 });
 
-const trendUpBadge =
-  "border-transparent bg-green-500/15 text-green-700 dark:text-green-400";
-
 const QUICK_ACTIONS = [
   { label: "Manage products", to: "/products" },
   { label: "View orders", to: "/orders" },
@@ -69,12 +76,14 @@ const QUICK_ACTIONS = [
   { label: "Write a post", to: "/posts" },
 ];
 
-function formatCurrency(value: number): string {
-  return value.toLocaleString(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+/** Period-over-period delta → a StatCard trend pill (anchored to the data span,
+ *  not wall-clock, so the demo always reads correctly). */
+function deltaTrend(current: number, previous: number): StatCardProps["trend"] {
+  if (previous === 0) {
+    return current > 0 ? { value: "new", up: true } : undefined;
+  }
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return { value: `${Math.abs(pct)}%`, up: pct >= 0 };
 }
 
 function StoreOverview() {
@@ -85,82 +94,132 @@ function StoreOverview() {
   const products = productsQuery.data?.rows ?? [];
   const orders = ordersQuery.data?.rows ?? [];
 
-  const { stats, productsByCategory, productsByStatus, recentProducts } =
-    useMemo(() => {
-      const available = products.filter((p) => p.status === "available").length;
-      const outOfStock = products.filter(
-        (p) => p.status === "out_of_stock",
-      ).length;
-      const inventoryValue = products.reduce(
-        (sum, p) => sum + p.price * p.stock,
-        0,
-      );
-      const activeOrders = orders.filter((o) => o.status === "active").length;
+  const model = useMemo(() => {
+    const outOfStock = products.filter(
+      (p) => p.status === "out_of_stock",
+    ).length;
 
-      const statCards: StatCardProps[] = [
-        {
-          label: "Products",
-          value: (
-            productsQuery.data?.total ?? products.length
-          ).toLocaleString(),
-          icon: PackageIcon,
-          sub: `${available} available`,
-        },
-        {
-          label: "Inventory value",
-          value: formatCurrency(inventoryValue),
-          icon: CurrencyDollarIcon,
-          sub: `across ${products.length} SKUs`,
-        },
-        {
-          label: "Out of stock",
-          value: String(outOfStock),
-          icon: WarningIcon,
-          sub: `of ${products.length} products`,
-        },
-        {
-          label: "Orders",
-          value: (ordersQuery.data?.total ?? orders.length).toLocaleString(),
-          icon: ReceiptIcon,
-          sub: `${activeOrders} active`,
-        },
-      ];
+    const recognised = orders.filter(isRevenue);
+    const revenue = recognised.reduce((sum, o) => sum + o.total, 0);
+    const pending = orders.filter((o) => o.status === "pending").length;
+    const aov = recognised.length ? Math.round(revenue / recognised.length) : 0;
 
-      const categoryCounts = new Map<string, number>();
-      for (const product of products) {
-        categoryCounts.set(
-          product.category,
-          (categoryCounts.get(product.category) ?? 0) + 1,
-        );
+    // Split the data span in half for period-over-period trends.
+    const times = orders.map((o) => new Date(o.createdAt).getTime());
+    const min = times.length ? Math.min(...times) : 0;
+    const max = times.length ? Math.max(...times) : 0;
+    const mid = min + (max - min) / 2;
+    const inFirst = (o: Order) => new Date(o.createdAt).getTime() < mid;
+
+    const firstRev = orders
+      .filter((o) => inFirst(o) && isRevenue(o))
+      .reduce((s, o) => s + o.total, 0);
+    const secondRev = revenue - firstRev;
+    const firstCount = orders.filter(inFirst).length;
+    const secondCount = orders.length - firstCount;
+    const firstRecognised = orders.filter(
+      (o) => inFirst(o) && isRevenue(o),
+    ).length;
+    const firstAov = firstRecognised
+      ? Math.round(firstRev / firstRecognised)
+      : 0;
+    const secondRecognised = recognised.length - firstRecognised;
+    const secondAov = secondRecognised
+      ? Math.round(secondRev / secondRecognised)
+      : 0;
+
+    const statCards: StatCardProps[] = [
+      {
+        label: "Revenue",
+        value: formatMoney(revenue),
+        icon: CurrencyDollarIcon,
+        trend: deltaTrend(secondRev, firstRev),
+        sub: `${recognised.length} paid + fulfilled orders`,
+      },
+      {
+        label: "Orders",
+        value: (ordersQuery.data?.total ?? orders.length).toLocaleString(),
+        icon: ReceiptIcon,
+        trend: deltaTrend(secondCount, firstCount),
+        sub: `${pending} pending`,
+      },
+      {
+        label: "Avg order value",
+        value: formatMoney(aov),
+        icon: TrendUpIcon,
+        trend: deltaTrend(secondAov, firstAov),
+        sub: "per recognised order",
+      },
+      {
+        label: "Out of stock",
+        value: String(outOfStock),
+        icon: WarningIcon,
+        sub: `of ${products.length} products`,
+      },
+    ];
+
+    // Daily revenue series across the data span (zero-filled), in dollars.
+    const byDay = new Map<string, number>();
+    for (const o of recognised) {
+      const key = new Date(o.createdAt).toISOString().slice(0, 10);
+      byDay.set(key, (byDay.get(key) ?? 0) + o.total);
+    }
+    const revenueSeries: { date: string; revenue: number }[] = [];
+    if (times.length) {
+      const day = new Date(min);
+      day.setHours(0, 0, 0, 0);
+      const end = new Date(max);
+      end.setHours(0, 0, 0, 0);
+      while (day <= end) {
+        const key = day.toISOString().slice(0, 10);
+        revenueSeries.push({
+          date: day.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          }),
+          revenue: Math.round((byDay.get(key) ?? 0) / 100),
+        });
+        day.setDate(day.getDate() + 1);
       }
-      const categoryData = [...categoryCounts.entries()]
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 6);
+    }
 
-      const statusData = [
-        { name: "Available", value: available },
-        { name: "Out of stock", value: outOfStock },
-        {
-          name: "Discontinued",
-          value: products.filter((p) => p.status === "discontinued").length,
-        },
-      ].filter((entry) => entry.value > 0);
+    // Top customers by recognised revenue (dollars).
+    const byCustomer = new Map<string, number>();
+    for (const o of recognised) {
+      byCustomer.set(o.customer, (byCustomer.get(o.customer) ?? 0) + o.total);
+    }
+    const topCustomers = [...byCustomer.entries()]
+      .map(([name, cents]) => ({ name, value: Math.round(cents / 100) }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6);
 
-      const recent = [...products]
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        )
-        .slice(0, 5);
+    // Orders by status (count) for the pie.
+    const byStatus = new Map<string, number>();
+    for (const o of orders) {
+      byStatus.set(o.status, (byStatus.get(o.status) ?? 0) + 1);
+    }
+    const statusData = [...byStatus.entries()]
+      .map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value,
+      }))
+      .filter((e) => e.value > 0);
 
-      return {
-        stats: statCards,
-        productsByCategory: categoryData,
-        productsByStatus: statusData,
-        recentProducts: recent,
-      };
-    }, [products, orders, productsQuery.data?.total, ordersQuery.data?.total]);
+    const recentOrders = [...orders]
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 5);
+
+    return {
+      stats: statCards,
+      revenueSeries,
+      topCustomers,
+      statusData,
+      recentOrders,
+    };
+  }, [products, orders, ordersQuery.data?.total]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -186,35 +245,49 @@ function StoreOverview() {
         </div>
       </div>
 
-      {/* Stats — computed from the live products / orders resources */}
+      {/* KPIs with period-over-period trends */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {model.stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
 
-      {/* Charts — derived from the same resource data */}
+      {/* Revenue over time — the flagship temporal view */}
+      <ChartCard
+        title="Revenue"
+        action={<Badge variant="secondary">paid + fulfilled</Badge>}
+      >
+        <AreaChart
+          data={model.revenueSeries}
+          xKey="date"
+          series={[{ key: "revenue", label: "Revenue ($)" }]}
+          height={260}
+          showLegend={false}
+        />
+      </ChartCard>
+
+      {/* Secondary charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ChartCard
-          title="Products by category"
-          action={<Badge variant="secondary">{products.length} total</Badge>}
+          title="Top customers"
+          action={<Badge variant="secondary">by revenue</Badge>}
         >
           <BarChart
-            data={productsByCategory}
+            data={model.topCustomers}
             xKey="name"
-            bars={[{ key: "value", label: "Products" }]}
+            bars={[{ key: "value", label: "Revenue ($)" }]}
             forceBars
             colorful
           />
         </ChartCard>
 
         <ChartCard
-          title="Products by status"
+          title="Orders by status"
           action={
-            <Badge variant="secondary">{productsByStatus.length} states</Badge>
+            <Badge variant="secondary">{model.statusData.length} states</Badge>
           }
         >
-          <PieChart data={productsByStatus} nameKey="name" valueKey="value" />
+          <PieChart data={model.statusData} nameKey="name" valueKey="value" />
         </ChartCard>
       </div>
 
@@ -222,30 +295,36 @@ function StoreOverview() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">Recent products</CardTitle>
+            <CardTitle className="text-base">Recent orders</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {recentProducts.map((product) => (
-              <div
-                key={product.id}
-                className="flex items-center gap-3 border-b border-border pb-3 last:border-b-0 last:pb-0"
+            {model.recentOrders.map((order) => (
+              <Link
+                key={order.id}
+                to="/orders/$id"
+                params={{ id: order.id }}
+                className="flex items-center gap-3 border-b border-border pb-3 last:border-b-0 last:pb-0 hover:opacity-80"
               >
                 <div className="grid size-8 shrink-0 place-items-center bg-muted text-xs font-semibold text-foreground">
-                  {product.name.slice(0, 2).toUpperCase()}
+                  {order.customer.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{product.name}</p>
+                  <p className="truncate text-sm font-medium">{order.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {product.category} · {product.sku}
+                    {order.customer}
                   </p>
                 </div>
-                <span className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">
-                  ${product.price.toFixed(2)}
+                <StatusChip
+                  status={order.status as OrderStatus}
+                  colorMap={statusColorMap}
+                />
+                <span className="w-20 whitespace-nowrap text-right text-sm font-medium tabular-nums">
+                  {formatMoney(order.total)}
                 </span>
-              </div>
+              </Link>
             ))}
-            {recentProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No products yet.</p>
+            {model.recentOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No orders yet.</p>
             ) : null}
           </CardContent>
         </Card>
@@ -273,7 +352,10 @@ function StoreOverview() {
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">API</span>
-                  <Badge variant="outline" className={trendUpBadge}>
+                  <Badge
+                    variant="outline"
+                    className="border-transparent bg-green-500/15 text-green-700 dark:text-green-400"
+                  >
                     <span className="size-1.5 bg-green-500" />
                     Operational
                   </Badge>
@@ -282,7 +364,10 @@ function StoreOverview() {
                   <span className="text-xs text-muted-foreground">
                     Database
                   </span>
-                  <Badge variant="outline" className={trendUpBadge}>
+                  <Badge
+                    variant="outline"
+                    className="border-transparent bg-green-500/15 text-green-700 dark:text-green-400"
+                  >
                     <span className="size-1.5 bg-green-500" />
                     Healthy
                   </Badge>

@@ -2,11 +2,15 @@ import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Order } from "@/db/schema";
 import { ActionMenu, type ChipColor, StatusChip } from "@/infra/ui";
+import { formatMoney } from "@/lib/format";
 import type { OrderStatus } from "./schema";
 
 export const statusColorMap: Record<OrderStatus, ChipColor> = {
-  active: "success",
-  archived: "default",
+  pending: "warning",
+  paid: "primary",
+  fulfilled: "success",
+  refunded: "secondary",
+  cancelled: "danger",
 };
 
 export interface OrderTableContext {
@@ -22,7 +26,7 @@ export function createOrdersColumns(
   return [
     {
       accessorKey: "name",
-      header: "Name",
+      header: "Order",
       cell: (info) => {
         const row = info.row.original;
         return (
@@ -39,6 +43,24 @@ export function createOrdersColumns(
           </Link>
         );
       },
+    },
+    {
+      accessorKey: "customer",
+      header: "Customer",
+      cell: (info) => (
+        <span className="text-muted-foreground">
+          {info.getValue() as string}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total",
+      header: () => <div className="text-right">Total</div>,
+      cell: (info) => (
+        <div className="text-right font-medium tabular-nums">
+          {formatMoney(info.getValue() as number)}
+        </div>
+      ),
     },
     {
       accessorKey: "status",

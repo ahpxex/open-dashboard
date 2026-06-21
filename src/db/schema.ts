@@ -2,6 +2,7 @@ import {
   boolean,
   doublePrecision,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -74,7 +75,7 @@ export const products = pgTable("products", {
   category: text("category").notNull(),
   price: doublePrecision("price").notNull().default(0),
   stock: integer("stock").notNull().default(0),
-  status: text("status").notNull().default("active"),
+  status: text("status").notNull().default("available"),
   sku: text("sku").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -84,10 +85,24 @@ export const products = pgTable("products", {
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 
+/** A single line item on an order. `unitPrice` is in integer minor units (cents). */
+export type OrderItem = {
+  sku: string;
+  name: string;
+  qty: number;
+  /** Unit price in integer minor units (cents). */
+  unitPrice: number;
+};
+
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  status: text("status").notNull().default("active"),
+  customer: text("customer").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  /** Order total in integer minor units (cents) — money is never a binary float. */
+  total: integer("total").notNull().default(0),
+  /** Denormalised line items (sku / name / qty / unitPrice-in-cents). */
+  items: jsonb("items").$type<OrderItem[]>().notNull().default([]),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

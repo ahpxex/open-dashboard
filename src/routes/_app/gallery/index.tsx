@@ -20,6 +20,7 @@ import {
   InfinityIcon,
   KanbanIcon,
   ListBulletsIcon,
+  ListChecksIcon,
   MagnifyingGlassIcon,
   NotePencilIcon,
   PencilSimpleIcon,
@@ -177,6 +178,14 @@ const SHAPES: Shape[] = [
     description: "Edit cells in place; commit on blur / Enter, revert on Esc.",
     href: "/gallery/table-inline-edit",
     icon: PencilSimpleIcon,
+  },
+  {
+    category: "lists",
+    title: "Bulk actions",
+    description:
+      "Select rows; a contextual bar applies actions to the whole selection.",
+    href: "/gallery/bulk-actions",
+    icon: ListChecksIcon,
   },
   {
     category: "lists",

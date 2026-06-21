@@ -7,14 +7,17 @@ export const ordersFilters: FilterConfig[] = [
     placeholder: "All statuses",
     options: [
       { key: "", label: "All statuses" },
-      { key: "active", label: "Active" },
-      { key: "archived", label: "Archived" },
+      { key: "pending", label: "Pending" },
+      { key: "paid", label: "Paid" },
+      { key: "fulfilled", label: "Fulfilled" },
+      { key: "refunded", label: "Refunded" },
+      { key: "cancelled", label: "Cancelled" },
     ],
   },
 ];
 
 export const ordersTableConfig = {
-  searchPlaceholder: "Search orders…",
+  searchPlaceholder: "Search orders or customers…",
   pageSizeOptions: [10, 20, 50],
   defaultPageSize: 10,
   emptyMessage: "No orders found.",
