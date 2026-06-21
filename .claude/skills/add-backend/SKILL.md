@@ -1,6 +1,6 @@
 ---
 name: add-backend
-description: Everything about the data layer — scaffold a CRUD resource (Postgres table + server fns + query hooks + DataTable page + create/edit dialog + sidebar entry); bind or swap one resource's data source (Drizzle / REST / GraphQL / in-memory) via the Repository seam; or re-point the whole app's data + auth at a different backend (Supabase, an external REST/GraphQL API, a different SQL engine). Use when adding a data entity or pointing the app at a backend other than the default Postgres + better-auth.
+description: Everything about the data layer — pick one of six ready-to-run backend templates (TanStack Start + Drizzle + better-auth, Hono + Drizzle + better-auth, Hono + Prisma + better-auth, Hono + Drizzle + Auth.js/NextAuth, FastAPI + SQLAlchemy + JWT, Supabase) and wire the frontend to it through the Repository + AuthProvider seams; scaffold a CRUD resource (Postgres table + server fns + query hooks + DataTable page + create/edit dialog + sidebar entry); bind or swap one resource's data source (Drizzle / REST / GraphQL / in-memory); or re-point the whole app's data + auth at a different backend. Use when adding a data entity or pointing the app at a backend other than the default Postgres + better-auth.
 ---
 
 # Add a backend (resources, data sources & presets)
@@ -18,6 +18,44 @@ re-pointing the whole app at a different backend are all **localized** operation
 Zero-config (`bun dev`, no `DATABASE_URL`) already runs on in-memory presets, so you
 can build UI before wiring a real backend. Full guides: `docs/data-adapters.md`,
 `docs/backends.md`.
+
+## Backend presets — ready-to-run templates
+
+Six **runnable backend templates** ship in this skill's `templates/<preset>/` (generated
+from the repo's `backends/` source and contract-tested — `templates/<preset>/README.md`
++ a shared `CONTRACT.md`). Pick one as the project's backend; each connects to the
+dashboard frontend through the two seams above — **no page, query, table, or form
+changes** — and each is independently verified.
+
+| Preset | Stack | Frontend wiring | Reference |
+| --- | --- | --- | --- |
+| `tanstack-drizzle-betterauth` | TanStack Start server fns + Drizzle + better-auth (in-process — the default) | none — it *is* the scaffold | `references/tanstack-drizzle-betterauth.md` |
+| `hono-drizzle-betterauth` | Hono + Drizzle + better-auth (standalone TS service) | `restRepository` + `remoteBetterAuthProvider` | `references/hono-drizzle-betterauth.md` |
+| `hono-prisma-betterauth` | Hono + Prisma + better-auth (standalone TS service) | `restRepository` + `remoteBetterAuthProvider` (same as Drizzle) | `references/hono-prisma-betterauth.md` |
+| `hono-drizzle-authjs` | Hono + Drizzle + Auth.js / NextAuth v5 (standalone TS service) | `restRepository` + `remoteAuthjsProvider` + `authjs` client | `references/hono-drizzle-authjs.md` |
+| `fastapi-sqlalchemy-jwt` | FastAPI + SQLAlchemy + JWT (standalone Python service) | `restRepository` + `externalJwtAuthProvider` | `references/fastapi-sqlalchemy-jwt.md` |
+| `supabase` | Supabase Postgres + Auth (BaaS — SQL + config) | `supabaseRepository` + Supabase `AuthProvider` (copy-ready) | `references/supabase.md` |
+
+The HTTP-API presets (the `hono-*` services + `fastapi`) all speak one shared wire
+contract, so their frontend auth providers ship **pre-wired and typechecked** in the base
+under `src/lib/auth-providers/` (`externalJwtAuthProvider`, `remoteBetterAuthProvider`,
+`remoteAuthjsProvider`) — activating is a one-line swap. Supabase needs the Supabase SDKs,
+so its wiring ships as copy-ready files in `templates/supabase/frontend-wiring/`.
+
+> Stack matrix: framework (TanStack / Hono / FastAPI / Supabase) × ORM (Drizzle / Prisma /
+> SQLAlchemy) × auth (better-auth / Auth.js / custom-JWT / Supabase). The presets are the
+> idiomatic, verified combinations — not a blind cartesian product.
+
+**To stand up a preset:**
+1. Read `references/<preset>.md` (Add it / Foundation / Invariants / Verify).
+2. Copy the template out as the service (`cp -R templates/<preset> <dest>`); follow its
+   README to run it (zero-config: SQLite + a dev secret, one install + one run command).
+3. Wire the frontend: bind the resource's `server.ts` to the preset's `Repository`
+   adapter (§2) and point `authProvider` at the preset's `AuthProvider` (§3).
+4. Verify end-to-end (the reference's Verify block).
+
+The numbered sections below are the building blocks these presets compose: add a resource
+(§1), bind/swap a data source (§2), swap the auth preset (§3).
 
 ## 1. Add a CRUD resource
 
@@ -126,6 +164,14 @@ export interface AuthProvider {
   handler(request: Request): Promise<Response>;              // serves /api/auth/*
 }
 ```
+
+> **For the bundled presets these now ship as real files — activate, don't hand-write.**
+> `src/lib/auth-providers/external-jwt.ts` (`externalJwtAuthProvider`, custom-JWT like the
+> FastAPI preset) and `src/lib/auth-providers/remote-better-auth.ts`
+> (`remoteBetterAuthProvider`, remote better-auth like the Hono preset) are pre-wired and
+> typechecked; the Supabase provider is copy-ready in
+> `templates/supabase/frontend-wiring/auth-provider.ts`. The examples below show the shape
+> behind those files.
 
 ### Example: Supabase auth provider
 

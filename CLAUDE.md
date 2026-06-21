@@ -41,7 +41,11 @@ the catalogue never ships code the repo hasn't typechecked, built, and tested.
   `sync-skills.ts`); each shape also has a hand-authored
   `add-component/references/<name>.md` (the "Add it / Foundation / Invariants /
   Verify" prose — **not** generated). Templates are a flat folder, basename only
-  (a basename-collision guard fails the sync if two sources clash).
+  (a basename-collision guard fails the sync if two sources clash). Whole-project
+  templates (the standalone backend presets) come from a second map in
+  `sync-skills.ts`, `TREE_MANIFEST`, which copies a source *directory tree*
+  (`backends/<preset>/`) **recursively** into `templates/<preset>/` — same drift
+  guard, structure preserved, install/build junk skipped.
 - **NEVER hand-edit anything under `templates/`.** Edit the repo source, then run
   `bun run sync-skills` to regenerate. `bun run sync-skills --check` is the
   **drift guard** — byte-for-byte compare, exits non-zero on any drift or missing
@@ -78,12 +82,15 @@ catalogue — not a new top-level skill. To add one:
 5. **Generate + verify:** `bun run sync-skills`, then
    `bun run typecheck && bun run check && bun run test && bun run build && bun run sync-skills --check`.
 
-**Operation skills** (`scaffold-dashboard`, `add-backend`,
-`rebrand`) ship **no
-`templates/`**: they point at a canonical in-repo example (e.g. `features/products`,
-`src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). They stay
-their own slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). `add-tests` is the
-one operation skill that still ships a `templates/` exemplar.
+**Operation skills** (`scaffold-dashboard`, `rebrand`) ship **no `templates/`**: they
+point at a canonical in-repo example (e.g. `features/products`,
+`src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`), and stay
+slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). Two skills are exceptions:
+`add-tests` ships a flat `templates/` exemplar, and **`add-backend`** ships
+**directory-tree templates** — six runnable backend presets generated from
+`backends/<preset>/` via `TREE_MANIFEST`, each with a hand-authored
+`references/<preset>.md` — *plus* its in-repo pointers for the resource / adapter /
+auth-swap operations and the dormant frontend wiring in `src/lib/auth-providers/`.
 
 **Platform changes** (UI primitives, form system, charts, the `Repository` /
 `AuthProvider` seams, the shell): edit the repo source, run the full suite, then

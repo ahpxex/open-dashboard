@@ -42,14 +42,31 @@ the whole stack onto Postgres + Drizzle + better-auth.
 
 ## Swapping the backend
 
-Use the **`add-backend`** skill — it has the step-by-step plus copy-ready
-`AuthProvider` templates for Supabase and an external JWT API. In short:
+Use the **`add-backend`** skill. It ships **six ready-to-run backend presets** plus the
+frontend wiring to connect each to this app through the two seams — no page/query/table/
+form changes:
+
+| Preset | Stack | Frontend wiring |
+| --- | --- | --- |
+| `tanstack-drizzle-betterauth` | TanStack Start + Drizzle + better-auth (in-process — this app's default) | none |
+| `hono-drizzle-betterauth` | Hono + Drizzle + better-auth (standalone TS service) | `restRepository` + `remoteBetterAuthProvider` |
+| `hono-prisma-betterauth` | Hono + Prisma + better-auth (standalone TS service) | `restRepository` + `remoteBetterAuthProvider` |
+| `hono-drizzle-authjs` | Hono + Drizzle + Auth.js / NextAuth v5 (standalone TS service) | `restRepository` + `remoteAuthjsProvider` |
+| `fastapi-sqlalchemy-jwt` | FastAPI + SQLAlchemy + JWT (standalone Python service) | `restRepository` + `externalJwtAuthProvider` |
+| `supabase` | Supabase Postgres + Auth (BaaS) | `supabaseRepository` + Supabase `AuthProvider` |
+
+The preset sources live in [`backends/`](../backends/) (their in-repo source of truth,
+each independently runnable + tested); the skill carries them under
+`.claude/skills/add-backend/templates/`. The two HTTP-API presets' auth providers ship
+pre-wired and typechecked in [`src/lib/auth-providers/`](../src/lib/auth-providers). In
+short, the localized building blocks are:
 
 - **External REST/GraphQL data** → bind `restRepository` / `graphqlRepository` in
   the resource's `server.ts` (see [`data-adapters.md`](./data-adapters.md) and the
   `add-backend` skill). Nothing else in the vertical changes.
-- **Supabase / Clerk / external-API auth** → implement an `AuthProvider`, point
-  `authProvider` at it, and reimplement `@/lib/auth-client`.
+- **Supabase / external-API auth** → point `authProvider` at the matching provider in
+  `src/lib/auth-providers/` (or the Supabase copy-ready wiring) and swap
+  `@/lib/auth-client`.
 
 ### A different SQL engine (MySQL / SQLite / Turso)
 
