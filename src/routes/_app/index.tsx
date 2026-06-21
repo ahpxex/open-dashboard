@@ -203,6 +203,8 @@ function StoreOverview() {
             data={productsByCategory}
             xKey="name"
             bars={[{ key: "value", label: "Products" }]}
+            forceBars
+            colorful
           />
         </ChartCard>
 

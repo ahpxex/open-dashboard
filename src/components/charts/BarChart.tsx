@@ -3,6 +3,7 @@
 import {
   Bar,
   CartesianGrid,
+  Cell,
   Legend,
   BarChart as RBarChart,
   ResponsiveContainer,
@@ -49,6 +50,12 @@ export interface BarChartProps<T> {
    * line-chart rule) — e.g. a ranking where bar length is the point.
    */
   forceBars?: boolean;
+  /**
+   * Colour each category (datum) from the chart palette instead of a single
+   * fill — for a single-series breakdown where the colour carries the category
+   * (e.g. items per status/type). No effect with multiple series.
+   */
+  colorful?: boolean;
 }
 
 /**
@@ -64,6 +71,7 @@ export function BarChart<T>({
   showLegend = false,
   maxBarSize = 44,
   forceBars = false,
+  colorful = false,
 }: BarChartProps<T>) {
   if (barRendersAsLine(data.length, forceBars)) {
     return (
@@ -97,7 +105,13 @@ export function BarChart<T>({
             fill={
               s.color ?? (bars.length === 1 ? CHART_PRIMARY : chartColor(index))
             }
-          />
+          >
+            {colorful && bars.length === 1
+              ? data.map((d, i) => (
+                  <Cell key={String(d[xKey])} fill={chartColor(i)} />
+                ))
+              : null}
+          </Bar>
         ))}
       </RBarChart>
     </ResponsiveContainer>

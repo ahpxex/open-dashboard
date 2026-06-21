@@ -52,6 +52,21 @@ describe("chart wrappers mount without throwing", () => {
     ).toBeTruthy();
   });
 
+  it("BarChart mounts per-category cells when colorful", () => {
+    const { container } = render(
+      <BarChart
+        data={slices}
+        xKey="name"
+        bars={[{ key: "value" }]}
+        forceBars
+        colorful
+      />,
+    );
+    expect(
+      container.querySelector(".recharts-responsive-container"),
+    ).toBeTruthy();
+  });
+
   it("PieChart mounts a responsive container", () => {
     const { container } = render(
       <PieChart data={slices} nameKey="name" valueKey="value" />,
