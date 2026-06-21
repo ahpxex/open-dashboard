@@ -137,8 +137,8 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **Bulk select + bulk actions** on the table (row selection in URL state).
 
 ### Phase 4 — Agent layer (the differentiator) ✅
-- `.claude/skills/`: the current 5 skills — `scaffold-dashboard`, `rebrand`,
-  `add-backend`, `add-tests`, plus
+- `.claude/skills/`: the current 4 skills — `scaffold-dashboard`, `rebrand`,
+  `add-backend`, plus
   the `add-component` umbrella skill — a catalogue of 35+ UI shapes (`add-form`,
   `add-card-list`, `add-master-detail`, `add-detail-page`, `add-chart-page`,
   `add-kanban`, …), each a `references/<name>.md` doc. Each entry: when-to-use,

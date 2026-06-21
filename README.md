@@ -19,7 +19,7 @@ card-list/chart-page archetypes, plus `add-form`, `add-kanban`, `add-calendar`,
 `add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`,
 `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …) —
 plus a handful of **operation skills** (`scaffold-dashboard`, `add-backend`,
-`rebrand`, `add-tests`). Each shape ships
+`rebrand`). Each shape ships
 a copy-ready template + a reference doc (the exact
 `cp` + rewire steps, foundation, invariants). You build an app by **picking
 shapes**, not by editing a monolith.

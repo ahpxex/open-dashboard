@@ -8,12 +8,24 @@ is **not a product**. It is the **source of truth for the skill catalogue**
 **35+ copy-ready admin UI shapes** (CRUD, detail, master-detail, kanban, calendar,
 wizard, billing, RBAC, i18n, …), each a reference doc + a generated template — plus
 a handful of **operation skills** (`scaffold-dashboard`, `add-backend`,
-`rebrand`, `add-tests`). A **Skills
+`rebrand`). A **Skills
 Gallery** renders every shape's own demo. The demos, the
 resources, and the two business cases all exist for one reason: **to back a shape
 and be the live proof it produces working UI.** A shape's distributed `templates/`
 are *generated from* this repo's working source and kept byte-for-byte in sync, so
 the catalogue never ships code the repo hasn't typechecked, built, and tested.
+
+**The stance is frontend-opinionated, backend-agnostic — preserve it.** The frontend
+is one fixed, curated stack you *compose* from (TanStack Start + the shape catalogue +
+the UI / form / table / chart system on `@base-ui`) — be opinionated here. The backend
+(business **data** and **auth**) is *swappable* behind two seams — `Repository` and
+`AuthProvider` — never the frontend's concern: pick one of the `add-backend` presets
+(Postgres + Drizzle + better-auth by default; or Hono / FastAPI / Supabase, with
+Prisma / Auth.js / custom-JWT). The enforcing rule is mechanical: backend specifics
+(`@/db`, `@/lib/auth`, `drizzle-orm`, `pg`, an SDK client) live **only** in server-only
+modules (a resource's `server.ts`, `src/db/*`, `src/lib/auth*.ts`, the `infra/data`
+adapters) and reach the client solely through `createServerFn` + the two seams. Don't
+let a backend leak upward, and don't fork the frontend stack per project.
 
 **Two modes of work — know which you're in:**
 
@@ -85,9 +97,8 @@ catalogue — not a new top-level skill. To add one:
 **Operation skills** (`scaffold-dashboard`, `rebrand`) ship **no `templates/`**: they
 point at a canonical in-repo example (e.g. `features/products`,
 `src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`), and stay
-slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). Two skills are exceptions:
-`add-tests` ships a flat `templates/` exemplar, and **`add-backend`** ships
-**directory-tree templates** — six runnable backend presets generated from
+slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). **`add-backend`** is the
+exception: it ships **directory-tree templates** — six runnable backend presets generated from
 `backends/<preset>/` via `TREE_MANIFEST`, each with a hand-authored
 `references/<preset>.md` — *plus* its in-repo pointers for the resource / adapter /
 auth-swap operations and the dormant frontend wiring in `src/lib/auth-providers/`.

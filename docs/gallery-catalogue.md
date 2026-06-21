@@ -155,7 +155,7 @@ on. Each is documented once and demonstrated by ≥1 variant below.
   and is stripped from the scaffold base by `build-base` (no per-shape `remove-*`
   skill).
 - **Standalone operation skills** stay their own directories: `scaffold-dashboard`,
-  `add-backend`, `rebrand`, `add-tests`.
+  `add-backend`, `rebrand`.
 - **Options as composable docs**: pagination / infinite / lazy / searchable /
   filterable / selectable / custom-actions / scroll-vs-fixed are documented once
   in `add-component` and referenced by each component, not re-explained per variant.

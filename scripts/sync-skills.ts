@@ -146,8 +146,6 @@ const MANIFEST: Record<string, string[]> = {
   // The whole UI-shape catalogue ships as ONE retriever skill: all component
   // templates land in add-component/templates/ (flat, basename only).
   "add-component": Object.values(COMPONENT_SOURCES).flat(),
-  // Testing scaffold (a resource test exemplar) — a standalone operation skill.
-  "add-tests": ["src/features/__examples__/resource.test.ts"],
 };
 
 /**
