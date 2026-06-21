@@ -52,6 +52,7 @@ const COMPONENT_SOURCES: Record<string, string[]> = {
   ],
   "add-inline-edit": ["src/routes/_app/gallery/table-inline-edit.tsx"],
   // Lists & tables
+  "add-bulk-actions": ["src/routes/_app/gallery/bulk-actions.tsx"],
   "add-card-list": ["src/routes/_app/posts.tsx"],
   "add-list-view": [
     "src/routes/_app/gallery/list-lite.tsx",
@@ -206,6 +207,7 @@ const check = process.argv.includes("--check");
 let drift = 0;
 let copied = 0;
 let missing = 0;
+let pruned = 0;
 
 for (const [skill, sources] of Object.entries(MANIFEST)) {
   const templatesDir = join(skillsDir, skill, "templates");
@@ -241,6 +243,28 @@ for (const [skill, sources] of Object.entries(MANIFEST)) {
       mkdirSync(templatesDir, { recursive: true });
       writeFileSync(to, content);
       copied++;
+    }
+  }
+
+  // Orphans: flat template files with no declared source. Without this the flat
+  // bundle never prunes, so a retired shape's template would silently survive
+  // both `sync-skills` and `--check` as untested dead code — defeating the
+  // "templates are a generated copy of a current source" guarantee. The TREE
+  // loop below already prunes via rmSync; mirror that for the flat loop.
+  const expected = new Set(sources.map((s) => basename(s)));
+  const present = existsSync(templatesDir)
+    ? readdirSync(templatesDir, { withFileTypes: true })
+        .filter((e) => e.isFile())
+        .map((e) => e.name)
+    : [];
+  for (const name of present) {
+    if (expected.has(name)) continue;
+    if (check) {
+      console.error(`  orphan: ${skill}/templates/${name} (no source)`);
+      drift++;
+    } else {
+      rmSync(join(templatesDir, name));
+      pruned++;
     }
   }
 }
@@ -302,7 +326,7 @@ if (check) {
   console.log("skills in sync with repo sources.");
 } else {
   console.log(
-    `synced ${copied} template(s)${missing ? `, ${missing} missing source(s)` : ""}.`,
+    `synced ${copied} template(s)${pruned ? `, pruned ${pruned} orphan(s)` : ""}${missing ? `, ${missing} missing source(s)` : ""}.`,
   );
   if (missing) process.exit(1);
 }

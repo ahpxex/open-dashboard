@@ -9,7 +9,14 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
@@ -36,6 +43,8 @@ execFileSync(
     "--exclude=dist",
     "--exclude=.env",
     "--exclude=.vscode",
+    "--exclude=.github",
+    "--exclude=.githooks",
     "--exclude=src/routeTree.gen.ts",
     "--exclude=docs",
     // The standalone backend presets are distributed via the add-backend skill
@@ -112,17 +121,14 @@ for (const [from, to] of overrides) {
 
 // 4. Drop the repo-only scripts from package.json.
 const pkgPath = join(base, "package.json");
-const pkg = JSON.parse(
-  execFileSync("cat", [pkgPath], { encoding: "utf8" }),
-) as { scripts?: Record<string, string> };
+const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+  scripts?: Record<string, string>;
+};
 if (pkg.scripts) {
   for (const s of ["sync-skills", "build-base"]) {
     delete pkg.scripts[s];
   }
 }
-execFileSync("tee", [pkgPath], {
-  input: `${JSON.stringify(pkg, null, 2)}\n`,
-  stdio: ["pipe", "ignore", "inherit"],
-});
+writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
 console.log(`base assembled at ${base}`);

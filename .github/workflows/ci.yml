@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Repo gates + the two generated-artifact guards. This is the enforcement the
+  # skill model relied on being run by hand: `sync-skills --check` proves the
+  # bundled templates match their repo source, and rebuilding the base + a clean
+  # git diff proves the scaffold-dashboard base is not stale.
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Lint + format
+        run: bun run check
+      - name: Test
+        run: bun run test
+      - name: Build
+        run: bun run build
+      - name: Template drift guard
+        run: bun run sync-skills --check
+      - name: Base is in sync
+        run: |
+          bun run build-base
+          git diff --exit-code .claude/skills/scaffold-dashboard/base \
+            || (echo "::error::scaffold base is stale — run 'bun run build-base' and commit" && exit 1)
+
+  # Prove the stripped, demo-free scaffold base actually compiles and builds on a
+  # clean checkout — so build-base can never ship a base with dangling imports.
+  verify-base:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Scaffold the base into a clean dir
+        run: bash .claude/skills/scaffold-dashboard/scaffold.sh /tmp/scaffold-check
+      - name: Base typechecks + builds
+        run: |
+          cd /tmp/scaffold-check
+          bun run typecheck
+          bun run build
