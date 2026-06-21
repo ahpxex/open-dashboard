@@ -17,7 +17,7 @@ live demo in the repo.
 ### Claude Code
 
 ```
-/plugin marketplace add ahpxex/open-dashboard-next
+/plugin marketplace add ahpxex/open-dashboard
 /plugin install open-dashboard@open-dashboard
 ```
 
@@ -29,8 +29,8 @@ they never collide with other packs.
 The skills are standard, agent-agnostic `SKILL.md` files:
 
 ```bash
-npx openskills install ahpxex/open-dashboard-next   # reads SKILL.md / AGENTS.md
-npx skills add ahpxex/open-dashboard-next            # Vercel skills.sh
+npx openskills install ahpxex/open-dashboard   # reads SKILL.md / AGENTS.md
+npx skills add ahpxex/open-dashboard            # Vercel skills.sh
 ```
 
 > The shapes assume the **`scaffold-dashboard`** foundation (the platform layer they
