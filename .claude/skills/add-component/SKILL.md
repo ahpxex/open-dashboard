@@ -17,8 +17,8 @@ of truth is the code, not this doc). To add a component:
 Every component assumes the **`scaffold-dashboard`** foundation (the platform layer:
 UI primitives, the form system, charts, `DataTable`/`CardList`, theme tokens). Run
 `scaffold-dashboard` — or work inside a fork of the substrate — first. For a new
-data **resource** (table + server fns + page) use the standalone `add-crud-resource`
-skill; to point at a different backend use `add-backend-preset` / `add-data-source`.
+data **resource** (table + server fns + page) use the standalone `add-backend`
+skill; to point at a different backend use `add-backend`.
 
 ## Catalogue
 

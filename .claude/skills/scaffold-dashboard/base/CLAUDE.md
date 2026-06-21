@@ -5,14 +5,14 @@ full-stack starter on **TanStack Start** + **Drizzle ORM / PostgreSQL** +
 **better-auth**. The platform shell (UI, form system, charts, the `DataTable` /
 `CardList` infra, the data + auth seams, the routing shell) is in place; the shell
 ships with **no resources yet** — you build the product by **composing screens**
-with the `add-crud-resource` skill (a full CRUD vertical) and the **`add-component`**
+with the `add-backend` skill (a full CRUD vertical) and the **`add-component`**
 catalogue (detail pages, master-detail, card lists, charts, forms, kanban, billing,
 RBAC, i18n, …). This file is the app's architecture + conventions.
 
 It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapters
 (no Docker, no Postgres). Set `DATABASE_URL` to use Postgres; both the data
 (`Repository`) and auth (`AuthProvider`) backends are swappable presets — see the
-`add-backend-preset` skill.
+`add-backend` skill.
 
 ## Tech stack
 
@@ -46,7 +46,7 @@ migrate. Every `server.ts` handler calls `requireUser()`, validates via
 - **Auth** — `AuthProvider` (`src/lib/auth-provider.ts`, server-only) + the browser client (`src/lib/auth-client.ts`).
 
 Swap either to point at Supabase, an external REST/GraphQL API, or a different SQL
-engine — the rest of the app is unchanged. Use the `add-backend-preset` skill.
+engine — the rest of the app is unchanged. Use the `add-backend` skill.
 
 ### Platform layers (compose from these — don't reinvent)
 The form system (`@/components/form` — `TextField`/`NumberField`/`SelectField`/

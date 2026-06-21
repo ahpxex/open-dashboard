@@ -42,12 +42,12 @@ the whole stack onto Postgres + Drizzle + better-auth.
 
 ## Swapping the backend
 
-Use the **`add-backend-preset`** skill — it has the step-by-step plus copy-ready
+Use the **`add-backend`** skill — it has the step-by-step plus copy-ready
 `AuthProvider` templates for Supabase and an external JWT API. In short:
 
 - **External REST/GraphQL data** → bind `restRepository` / `graphqlRepository` in
   the resource's `server.ts` (see [`data-adapters.md`](./data-adapters.md) and the
-  `add-data-source` skill). Nothing else in the vertical changes.
+  `add-backend` skill). Nothing else in the vertical changes.
 - **Supabase / Clerk / external-API auth** → implement an `AuthProvider`, point
   `authProvider` at it, and reimplement `@/lib/auth-client`.
 

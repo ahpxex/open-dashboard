@@ -29,7 +29,7 @@ Set the product name, logo, description, and theme in `src/config/app.ts`
 Edit navigation in `src/lib/sidebar-items.ts`; theme colours are CSS variables
 in `src/styles/app.css`. `bun run check`.
 
-## 3. Pick the backend → skills `add-data-source`, `add-backend-preset`
+## 3. Pick the backend → skill `add-backend`
 
 The app reaches data and auth through two seams, so the backend is a swappable
 preset — not something baked in. With no `DATABASE_URL` everything runs on
@@ -57,7 +57,7 @@ needs:
 
 | Need | Skill / component |
 | --- | --- |
-| List + create/edit/delete + bulk select | `add-crud-resource` |
+| List + create/edit/delete + bulk select | `add-backend` |
 | View one record | `add-detail-page` shape in `add-component` |
 | Inbox / triage (list + side panel) | `add-master-detail` shape in `add-component` |
 | Gallery of cards | `add-card-list` shape in `add-component` |
@@ -65,7 +65,7 @@ needs:
 | Metrics / overview | `add-chart-page` shape in `add-component` |
 
 The shape rows above are reference docs inside the single `add-component`
-catalogue (`add-component` → `references/<name>.md`); `add-crud-resource` is a
+catalogue (`add-component` → `references/<name>.md`); `add-backend` is a
 standalone operation skill.
 
 Each skill points at the canonical example to copy (`products` is rich/Drizzle,

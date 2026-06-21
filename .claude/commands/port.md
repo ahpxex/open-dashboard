@@ -15,8 +15,8 @@ Work in order, using the matching skills and verifying (`typecheck`/`check`/
    brief needs rather than stripping a demo.
 2. **rebrand** — set name/logo/description/theme in `src/config/app.ts`.
 3. **Pick the data source** for each entity (Drizzle / REST / GraphQL) via
-   **add-backend-preset** / **add-data-source**.
-4. **Add the resources and page shapes** the brief needs via **add-crud-resource**
+   **add-backend**.
+4. **Add the resources and page shapes** the brief needs via **add-backend**
    and the **add-component** catalogue (detail, master-detail, card-list,
    chart-page, kanban, …).
 

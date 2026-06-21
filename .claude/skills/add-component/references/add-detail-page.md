@@ -28,7 +28,7 @@ Then in the copied file:
 This template wires the real `products` resource. A new detail page also needs a
 matching `features/<name>/` resource that exports a `get<Type>` server fn and a
 `<name>DetailQuery` (with a `detail: (id) => [...<name>Keys.all, "detail", id]`
-key) — `add-crud-resource` / `create-resource` scaffolds the resource, and
+key) — `add-backend` / `create-resource` scaffolds the resource, and
 `drizzleRepository.getOne` provides `get<Type>`. Reuse the same form dialog the
 list uses (extract it to `features/<name>/<Resource>FormDialog.tsx` if inline).
 

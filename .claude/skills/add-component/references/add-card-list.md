@@ -24,7 +24,7 @@ Then in the copied file:
 This template wires the real `posts` resource. A new card list also needs a
 matching `features/<name>/` resource and a `features/<name>/cards.tsx` (parallel to
 `columns.tsx`) exporting a `<Resource>Card` that renders one record's `<Card>` plus
-an `<ActionMenu>` wired through a `context` prop — `add-crud-resource` /
+an `<ActionMenu>` wired through a `context` prop — `add-backend` /
 `create-resource` scaffolds the resource; add `cards.tsx` alongside it.
 
 (Only open the template if you need to customise it — copying it costs no context.)

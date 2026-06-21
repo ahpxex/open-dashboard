@@ -33,7 +33,7 @@ Then in the copied files:
 These templates wire the real `orders` resource. A new master-detail view also
 needs a matching `features/<name>/` resource that exports a `<name>DetailQuery`
 (+ a `detail` key — see `add-detail-page`) alongside its list/columns/config —
-`add-crud-resource` / `create-resource` scaffolds the resource.
+`add-backend` / `create-resource` scaffolds the resource.
 
 (Only open a template if you need to customise it — copying it costs no context.)
 

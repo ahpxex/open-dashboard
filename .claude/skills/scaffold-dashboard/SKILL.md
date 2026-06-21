@@ -47,7 +47,7 @@ copy a pile of gallery shapes into the nav. Don't. Instead:
   scaffold base ships clean (no demo resources, no Skills Gallery) — you add
   product sections to `src/lib/sidebar-items.ts`, you don't prune sample ones.
 - **Pick the archetype that fits each resource's shape**, don't add one of each:
-  flat list → CRUD table (`add-crud-resource`); rich record → + `add-detail-page`;
+  flat list → CRUD table (`add-backend`); rich record → + `add-detail-page`;
   an inbox you triage → `add-master-detail`; a staged pipeline → `add-kanban`;
   people/visual items → `add-card-list`; date-bound items → `add-calendar`;
   metrics → `add-chart-page`.
@@ -63,7 +63,7 @@ copy a pile of gallery shapes into the nav. Don't. Instead:
 
 Each shape skill copies a bundled template into the new project:
 
-- **Resources** (data + CRUD): `bun run create-resource <name>` (or `add-crud-resource`),
+- **Resources** (data + CRUD): `bun run create-resource <name>` (or `add-backend`),
   then `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`.
 - **Shapes**: `add-list-view`, `add-kanban`, `add-tree-view`, `add-calendar`,
   `add-timeline`, `add-virtual-table`, `add-inline-edit`, `add-filter-panel`,

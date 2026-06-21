@@ -16,7 +16,7 @@
 > under `.claude/skills/add-component/templates/`. The component identifiers
 > (`add-form`, `add-kanban`, …) live on as those reference docs; they are no longer
 > standalone skill directories. The handful of names that remain **standalone
-> skills** (`add-crud-resource`, `add-data-source`, `add-backend-preset`, …) are
+> skills** (`add-backend`, …) are
 > called out as such in the rows below.
 >
 > The sidebar's two **business-case groups** (E-commerce, Sales/CRM) **compose**
@@ -69,7 +69,7 @@ on. Each is documented once and demonstrated by ≥1 variant below.
 
 | Variant | Demonstrates / options | Status | Files | Skill / component |
 | --- | --- | --- | --- | --- |
-| **Data table** | server paginate/sort/search/filter, CRUD, bulk select | ✅ | `features/products`, `routes/_app/products.tsx` | `add-crud-resource` (standalone skill) |
+| **Data table** | server paginate/sort/search/filter, CRUD, bulk select | ✅ | `features/products`, `routes/_app/products.tsx` | `add-backend` (standalone skill) |
 | **Card / grid gallery** | responsive card grid, same plumbing as table | ✅ | `features/posts` + `posts.tsx` | `add-card-list` component |
 | **Master-detail split** | list stays mounted + side panel (selection in URL) | ✅ | `orders.tsx` + `orders.$id.tsx` | `add-master-detail` component |
 | **List view (lite/dense)** | compact rows, leading icon/avatar, secondary text, no table chrome | ✅ | `routes/_app/gallery/list-lite.tsx` | `add-list-view` component |
@@ -135,7 +135,7 @@ on. Each is documented once and demonstrated by ≥1 variant below.
 | Variant | Status | Files | Skill |
 | --- | --- | --- | --- |
 | Login / register / forgot / reset | ✅ | `routes/_auth/*` | — |
-| Backend preset swap (Supabase / external-API / Postgres) | ✅ | `lib/auth-provider.ts` + `auth-client.ts` | `add-backend-preset` |
+| Backend preset swap (Supabase / external-API / Postgres) | ✅ | `lib/auth-provider.ts` + `auth-client.ts` | `add-backend` |
 
 ## H. System pages
 
@@ -155,8 +155,7 @@ on. Each is documented once and demonstrated by ≥1 variant below.
   and is stripped from the scaffold base by `build-base` (no per-shape `remove-*`
   skill).
 - **Standalone operation skills** stay their own directories: `scaffold-dashboard`,
-  `add-crud-resource`, `add-data-source`, `add-backend-preset`, `rebrand`,
-  `add-tests`.
+  `add-backend`, `rebrand`, `add-tests`.
 - **Options as composable docs**: pagination / infinite / lazy / searchable /
   filterable / selectable / custom-actions / scroll-vs-fixed are documented once
   in `add-component` and referenced by each component, not re-explained per variant.

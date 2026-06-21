@@ -26,7 +26,7 @@ Then in the copied file:
 
 The template wires the real `products` / `orders` resources. A
 chart page over your own data needs matching `features/<name>/` resources whose
-list queries it can read — `add-crud-resource` / `create-resource` scaffolds them.
+list queries it can read — `add-backend` / `create-resource` scaffolds them.
 
 (Only open the template if you need to customise it — copying it costs no context.)
 

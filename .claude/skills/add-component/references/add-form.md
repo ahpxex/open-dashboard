@@ -45,7 +45,7 @@ Then in the copied file:
    remounts (clean reset) each time it opens.
 
 A real resource form also needs a matching `features/<name>/` resource
-(`schema.ts`/`server.ts`/`queries.ts`) — `add-crud-resource` / `create-resource`
+(`schema.ts`/`server.ts`/`queries.ts`) — `add-backend` / `create-resource`
 scaffolds it.
 
 (Only open a template if you need to customise it — copying it costs no context.)

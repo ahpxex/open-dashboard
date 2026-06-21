@@ -3,7 +3,7 @@ description: Scaffold a new CRUD resource (table + server + queries + table page
 argument-hint: <plural-resource-name> [field notes]
 ---
 
-Use the **add-crud-resource** skill to scaffold a new CRUD resource.
+Use the **add-backend** skill to scaffold a new CRUD resource.
 
 Resource (and any field hints): $ARGUMENTS
 

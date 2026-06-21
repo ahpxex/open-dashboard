@@ -13,13 +13,13 @@ It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapter
 ### A catalogue of shapes, not a fixed app
 
 `.claude/skills/` holds one **`add-component`** skill — a catalogue + retriever over
-**35+ copy-ready admin UI shapes** (`add-crud-resource`'s detail/master-detail/
+**35+ copy-ready admin UI shapes** (the detail/master-detail/
 card-list/chart-page archetypes, plus `add-form`, `add-kanban`, `add-calendar`,
 `add-tree-view`, `add-timeline`, `add-wizard-form`, `add-inline-edit`,
 `add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`,
 `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …) —
-plus a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
-`add-data-source`, `add-backend-preset`, `rebrand`, `add-tests`). Each shape ships
+plus a handful of **operation skills** (`scaffold-dashboard`, `add-backend`,
+`rebrand`, `add-tests`). Each shape ships
 a copy-ready template + a reference doc (the exact
 `cp` + rewire steps, foundation, invariants). You build an app by **picking
 shapes**, not by editing a monolith.
@@ -127,8 +127,8 @@ is backed by a skill:
    plugin (see below) and run `scaffold-dashboard`. The base is **demo-free and
    gallery-free** out of the box, zero-config runnable. Skill: `scaffold-dashboard`.
 2. **Rebrand** — change name / logo / nav / theme in `src/config/app.ts`. Skill: `rebrand`.
-3. **Pick a backend** — keep zero-config memory, set `DATABASE_URL` for Postgres, or swap a preset (Supabase / external API). Skill: `add-backend-preset` · [`docs/backends.md`](./docs/backends.md).
-4. **Add resources** — `bun run create-resource <name>` scaffolds a full CRUD vertical (table + server fns + query hooks + `DataTable` page + create/edit dialog + sidebar entry). Skill: `add-crud-resource`.
+3. **Pick a backend** — keep zero-config memory, set `DATABASE_URL` for Postgres, or swap a preset (Supabase / external API). Skill: `add-backend` · [`docs/backends.md`](./docs/backends.md).
+4. **Add resources** — `bun run create-resource <name>` scaffolds a full CRUD vertical (table + server fns + query hooks + `DataTable` page + create/edit dialog + sidebar entry). Skill: `add-backend`.
 5. **Add shapes** — compose detail pages, master-detail, kanban, charts, wizards, billing, etc. from the `add-component` catalogue.
 
 > Prefer to explore first? You can also `git clone` the full repo — it boots with

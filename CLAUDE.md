@@ -7,8 +7,8 @@ is **not a product**. It is the **source of truth for the skill catalogue**
 (`.claude/skills/`): one **`add-component`** skill — a catalogue + retriever over
 **35+ copy-ready admin UI shapes** (CRUD, detail, master-detail, kanban, calendar,
 wizard, billing, RBAC, i18n, …), each a reference doc + a generated template — plus
-a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
-`add-data-source`, `add-backend-preset`, `rebrand`, `add-tests`). A **Skills
+a handful of **operation skills** (`scaffold-dashboard`, `add-backend`,
+`rebrand`, `add-tests`). A **Skills
 Gallery** renders every shape's own demo. The demos, the
 resources, and the two business cases all exist for one reason: **to back a shape
 and be the live proof it produces working UI.** A shape's distributed `templates/`
@@ -27,7 +27,7 @@ the catalogue never ships code the repo hasn't typechecked, built, and tested.
   clean base into a **new** project and *composing* it (scaffold → rebrand → pick a
   backend → add resources → add shapes). The base is demo-free + gallery-free, so
   there's nothing to strip. That workflow lives in `PORTING.md` and the
-  `scaffold-dashboard` / `rebrand` / `add-backend-preset` / `add-crud-resource`
+  `scaffold-dashboard` / `rebrand` / `add-backend`
   skills — not here. Don't confuse "build a product" (port-out) with "maintain the substrate"
   (the work in this repo).
 
@@ -78,8 +78,8 @@ catalogue — not a new top-level skill. To add one:
 5. **Generate + verify:** `bun run sync-skills`, then
    `bun run typecheck && bun run check && bun run test && bun run build && bun run sync-skills --check`.
 
-**Operation skills** (`scaffold-dashboard`, `add-crud-resource`, `add-data-source`,
-`add-backend-preset`, `rebrand`) ship **no
+**Operation skills** (`scaffold-dashboard`, `add-backend`,
+`rebrand`) ship **no
 `templates/`**: they point at a canonical in-repo example (e.g. `features/products`,
 `src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). They stay
 their own slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). `add-tests` is the
@@ -87,7 +87,7 @@ one operation skill that still ships a `templates/` exemplar.
 
 **Platform changes** (UI primitives, form system, charts, the `Repository` /
 `AuthProvider` seams, the shell): edit the repo source, run the full suite, then
-`bun run build-base` (and `bun run sync-skills` if a `MANIFEST` source changed).
+`bun run build-base` (and `bun run sync-skills` if a `COMPONENT_SOURCES` source changed).
 
 ## Conventions (prescriptive)
 
@@ -206,7 +206,7 @@ the card-grid counterpart with the same plumbing (`useResourceList`).
 - **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
 - **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` / `memoryRepository` (zero-config default) over `ListParams`/`ListResult`. A resource binds an adapter in `server.ts`, typically via `hasDatabase` (`@/lib/backend`). See `docs/data-adapters.md`.
 - **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced, debounced search, opt-in bulk select) and `CardList` + `useResourceList`.
-- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each is a component in `add-component` (`add-detail-page`, `add-master-detail`, `add-card-list`, …); `add-crud-resource` is a standalone operation skill. Catalogue: `PATTERNS.md`.
+- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each is a component in `add-component` (`add-detail-page`, `add-master-detail`, `add-card-list`, …); CRUD-resource scaffolding lives in the `add-backend` operation skill. Catalogue: `PATTERNS.md`.
 
 ### Sidebar, Skills Gallery & business cases
 
@@ -218,7 +218,7 @@ via `appConfig.nav`. Two halves:
   dashboard + blog) and **Sales (CRM)** (`/crm/*`: forecast / pipeline kanban /
   contacts / companies). `products` and `orders` are real Drizzle resources (with an
   in-memory fallback); the rest are memory-backed. These double as the live demos for
-  the foundational archetypes — the `add-crud-resource` operation skill plus the
+  the foundational archetypes — the `add-backend` operation skill plus the
   `add-detail-page` / `add-master-detail` / `add-card-list` / `add-chart-page`
   components of `add-component`. They live only in this repo as proof — the
   `scaffold-dashboard` base ships without them (`build-base` strips them).

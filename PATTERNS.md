@@ -8,7 +8,7 @@
 **Status:** ✅ implemented & verified · 🚧 planned (spec below is the build target).
 
 See [`ROADMAP.md`](./ROADMAP.md) for sequencing. Once a pattern ships, it is
-reachable through `.claude/skills/`: the operation skills (`add-crud-resource`, …)
+reachable through `.claude/skills/`: the operation skills (`add-backend`, …)
 have their own dir, and every UI shape is a component inside the single
 `add-component` skill (`references/<name>.md` + a flat `templates/`). The **Skill**
 column below names either the operation skill or the `add-component` component.
@@ -19,7 +19,7 @@ column below names either the operation skill or the `add-component` component.
 
 | Pattern | Status | Use when | Canonical example | Skill |
 | --- | --- | --- | --- | --- |
-| **CRUD table** | ✅ | List rows with server-side paginate/sort/search/filter + create/edit/delete + bulk select | `features/products`, `routes/_app/products.tsx` | `add-crud-resource` |
+| **CRUD table** | ✅ | List rows with server-side paginate/sort/search/filter + create/edit/delete + bulk select | `features/products`, `routes/_app/products.tsx` | `add-backend` |
 | **Detail / Show** | ✅ | View one record (`/<resource>/$id`) + edit/delete entry | `routes/_app/products_.$id.tsx` | `add-detail-page` shape in `add-component` |
 | **Master-detail / nested** | ✅ | List + record detail in a side panel (selection in URL) | `routes/_app/orders.tsx` + `orders.$id.tsx` | `add-master-detail` shape in `add-component` |
 | **Card / grid list** | ✅ | Gallery of cards (same data plumbing as the table) | `routes/_app/posts.tsx` + `features/posts/cards.tsx` | `add-card-list` shape in `add-component` |

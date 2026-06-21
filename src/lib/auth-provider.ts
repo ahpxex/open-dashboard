@@ -47,6 +47,6 @@ export const betterAuthProvider: AuthProvider = {
 
 /**
  * The active auth backend. Swap this single binding (and `@/lib/auth-client`) to
- * change the auth preset — see the `add-backend-preset` skill.
+ * change the auth preset — see the `add-backend` skill.
  */
 export const authProvider: AuthProvider = betterAuthProvider;
